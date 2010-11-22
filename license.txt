@@ -1,0 +1,38 @@
+MyCube Vault
+Copyright (c) 2010, DLMM Pte Ltd
+All rights reserved.
+licensing@mycube.com
+
+http://www.mycube.com/vault/license
+
+Open Source License
+------------------------------------------------------------------------------------------
+
+MyCube Vault is licensed under the terms of the Open Source GPL 3.0 license.
+http://www.gnu.org/licenses/gpl.html
+
+There are several FLOSS exceptions available for use with this release for
+open source applications that are distributed under a license other than the GPL.
+
+* Open Source License Exception for Applications
+  http://www.mycube.com/vault/floss-exception
+
+* Open Source License Exception for Development
+  http://www.mycube.com/vault/ux-exception
+
+ 
+Commercial License
+------------------------------------------------------------------------------------------
+MyCube is a keen supporter of open source development. If you are creating proprietary
+applications and are not prepared to distribute and share the source code then you will
+using the MyCube Vault without our permission and which may result in legal action being
+taken against you.  If you wish to create proprietary applications for commercial gain
+you will need to obtain a commercial licence for which a fee will be payable. Please
+contact licence@mycube.com for further details of our commercial licensing terms.
+
+ 
+------------------------------------------------------------------------------------------
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+AND NONINFRINGEMENT OF THIRD-PARTY INTELLECTUAL PROPERTY RIGHTS. See the GNU General Public
+License for more details.

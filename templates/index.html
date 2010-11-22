@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Safeguard your Digital Identity</h2>
+
+<div>
+  <p>Many social media services have terms such as:</p>
+  
+  <blockquote class="frontquote">FAILURE TO ADHERE TO THE CODE OF CONDUCT AND TERMS OF USE MAY RESULT, AMONG OTHER THINGS, IN TERMINATION OF YOUR ACCOUNT AND THE DELETION OF CONTENT THAT YOU HAVE POSTED ON FACEBOOK, WITH OR WITHOUT NOTICE, AS DETERMINED BY FACEBOOK IN ITS SOLE DISCRETION.</blockquote>
+  <p>MyCube Vault provides daily automatic backups, archiving, and export for all your social media data.</p>
+  <p><strong>Be safe and start protecting your data now!</strong></p>
+</div>
+<table cellpadding="0" cellspacing="0" id="services_table">
+  <thead>
+    <tr>
+      <th colspan="4" align="left">Services</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for _, service in enabled_services.iteritems() %}
+    <tr>
+      <td class="icon_box">
+        <img src="{{ url_for('%s.static' % service['name'], filename='images/%s.png' % service['title'] | lower ) }}" height=50 width=50 />
+      </td>
+      <td class="app_name">
+        {{ service['title'] }}
+      </td>
+      <td class="action_box" id="service-{{ service['name'] }}">
+      </td>
+      <td width='50'>
+        {{ service['name'] in ['google_contacts_app', 'picasaweb_app'] and '*beta' or '&nbsp;' | safe }}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<p>All data is stored on your own computer</p>
+
+{% for _, service in enabled_services.iteritems() %}
+<script type="text/javascript">
+  jQuery(document).ready(function(){
+    jQuery('#service-{{ service['name'] }}').load('{{ url_for("%s.setup_link" % service['name']) }}');
+  });
+</script>
+{% endfor %}
+{% endblock content %}

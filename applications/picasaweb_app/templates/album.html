@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Archives: Picasaweb</h2>
+  <h3>Account: {{ profile['uri'] }}</h3>
+  <div class="content-body">
+  <div class="album_archive_container">
+    <div class="container_header">
+      <h4>{{ album['title'] }}</h4>
+      <a href="{{ url_for('archive_albums', archive_id=archive_id) }}" class="back_to_archives_link">&laquo; Back to Albums</a>
+    </div>
+    <div class="albums_container">
+
+      {% for row in photos.items | batch(7) %}
+        <div class="album_row clearfix">
+        {% for photo in row %}
+        <div class="photo_container">
+          <div class="photo_border">
+            <a href="{{ url_for('archive_album_photo', archive_id=archive_id, album_id=album_id, photo_id=photo['id']) }}" style="border:0" class=''>
+              <img src="{{ url_for('album_photo_path', album_id=album_id, photo_id=photo['id'], size='thumbnail') }}" class="thumbnail" id="photo-{{ photo['id'] }}" alt="{{ (photo['name'] | length > 0) and '%s%s' % (photo['name'], '<br />',) or '' }}Comments: {{ photo['comments'] | length }}" />
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="paginate">
+    {% from "facebook_app/_formhelpers.html" import render_pagination %}
+    {{ render_pagination(photos) }}
+  </div>
+</div>
+  <script type="text/javascript">
+    jQuery(document).ready(function(){
+      jQuery('a.photo').colorbox({
+        title: jQuery(this).attr('alt'),
+        opacity: '0.6',
+      });
+      jQuery('img.thumbnail').each(function(){
+        jQuery(this).cjObjectScaler({
+          destElem: jQuery(this).parent().parent(),
+          method: 'fit',
+          fade: 800
+        });
+      });
+      jQuery('.thumbnail').each(function(p){
+        jQuery(this).qtip({
+          content: jQuery(this).attr('alt'),
+          show:'mouseover',
+          hide:'mouseout',
+          style: {
+            name: 'dark',
+            border: {
+              width: 1,
+              radius: 4
+            }
+          },
+          position: {
+            corner: {
+              target: 'bottomMiddle',
+              tooltip: 'center'
+            }
+          }
+        });
+      });
+    });
+  </script>
+{% endblock content %}
+

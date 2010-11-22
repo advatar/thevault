@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
+<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+<META HTTP-EQUIV="Expires" CONTENT="-1">
+<title>MYCUBE</title>
+<link rel="shortcut icon" type="image/vnd.microsoft.icon"  href="{{ url_for('.static', filename='images/favicon.ico') }}" />
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/mycubevault.css') }}" />
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/colorbox.css') }}" />
+<style type="text/css">
+#cboxOverlay {
+  background: none repeat scroll 0 0 #333;
+}
+.offline {
+  border: 1px solid red;
+  color: red;
+  padding:5px;
+  margin-bottom: 10px;
+}
+</style>
+<script type="text/javascript" src="{{ url_for('.static', filename='js/DD_roundies_0.0.2a.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('.static', filename='js/jquery-min.js') }}"></script>
+</head>
+<body>
+<div id="page">
+  <div id="header" class="bottom-shadow">
+    <a href="{{ url_for('.index') }}"><h1>MyVault</h1><img src="{{ url_for('.static', filename='images/myvaultlogo.png') }}" /></a>
+  </div>
+  <div id="middle" class="clearfix">
+    <div id="sidebar">
+    {% block sidebar %}
+      {% from "_formhelpers.html" import render_sidebar_service %}
+      <ul>
+        <li class="sidebar-item">
+          <a href="{{ url_for('.index') }}" class="rounded-left">
+            <h3>Dashboard</h3>
+          </a>
+        </li>
+        <li class="withsubmenu sidebar-item">
+          <a href="#" onclick="return false;">
+            <h3>My Accounts</h3>
+          </a>
+          <ul class="accounts">
+          {% for _, service in enabled_services.iteritems() %}
+            <li>
+            {{ render_sidebar_service(request, service) }}
+            </li>
+          {% endfor %}
+          </ul>
+        </li>
+      </ul>
+    {% endblock sidebar %}
+    </div>
+    <div id="content">
+      <div id="update_status">
+        <script type="text/javascript" src="http://mycube.com/vault/version/1.0.0"></script>
+      </div>
+      <div id='connection_status'></div>
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        <ul class="flashes">
+        {% for category, message in messages %}
+          <li class="flash-{{ category }}"><p>{{ message }}</p></li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+      <script type="text/javascript">
+        jQuery(document).ready(function(){
+          jQuery('.flashes').fadeOut(4000);
+        });
+      </script>
+    {% endwith %}
+
+    {% block content %}
+    {% endblock content %}
+    </div>
+  </div>
+  <div id="footer">
+    {% block footer %}
+      <a href="http://www.mycube.com">www.mycube.com</a>
+    {% endblock footer %}
+  </div>
+</div>
+<script type="text/javascript" src="{{ url_for('.static', filename='js/jquery.cj-object-scaler.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('.static', filename='js/colorbox/jquery.colorbox.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('.static', filename='js/jquery.updater.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('.static', filename='js/jquery.qtip-1.0.0-rc3.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('.static', filename='js/jquery.progressbar.js') }}"></script>
+<script type="text/javascript">
+  //DD_roundies.addRule('.rounded-left', '16px 0 0 16px');
+  //DD_roundies.addRule('.withsubmenu', '16px 0 0 16px');
+  jQuery(document).ready(function(){
+    jQuery.Updater("{{ url_for('.connection_status') }}", {
+      method:'GET',
+      data: '',
+      type: 'json',
+      interval: 5000
+    }, function(data){
+      var get_path = function(){
+        var path = window.location.path;
+        if(!path){
+          path = window.location.pathname;
+        }
+        if(!path){
+          path = "/";
+        }
+        return path;
+      };
+      if(data == null || data.status == 'offline'){
+        jQuery('#connection_status').addClass('offline').html('You are not currently connected to the internet.');
+        if(window.location.hostname != '127.0.0.1'){
+          var path = get_path();
+          window.location.href = "http://127.0.0.1:" + window.location.port + path;
+        }
+      } else {
+        jQuery('#connection_status').removeClass('offline').html('');
+        if(window.location.hostname == '127.0.0.1'){
+          var path = get_path();
+          window.location.href = "http://{{ config['HOST'] }}:" + window.location.port + path;
+        }
+      }
+    });
+    /*jQuery.get('/update_status', function(data){
+      if(data.status == 'outdated'){
+        jQuery('#update_status').html("There is a new version available, <a href='http://www.mycubevault.com' target='_blank'>click here to see details.</a>");
+      }
+    });*/
+  });
+</script>
+</body>
+</html>
+

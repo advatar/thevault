@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Preferences: Picasaweb</h2>
+
+<h3>Account: {{ profile['uri'] }}</h3>
+
+<div class="content-body clearfix">
+<form method="POST" action="{{ url_for('preferences') }}">
+  {{ schedule_form.csrf }}
+  <div class="formgroup backup_schedule">
+    <h4>Backup Schedule</h4>
+    
+    <div><input id="backup_now" type="button" value="Backup Now" class="button" /></div>
+    <div id="backup_progress" style="display:none">
+      <div>Backup progress</div>
+      <div id="progressbar"></div>
+    </div>
+    <script type="text/javascript">
+      jQuery(document).ready(function(){
+        jQuery('#backup_now').click(function(){
+          if(jQuery.browser.msie){
+            jQuery(this).attr('disabled', 'disabled');
+          } else {
+            jQuery(this).attr('disabled', true);
+          }
+          jQuery(this).val('Starting backup');
+
+          jQuery.get("{{ url_for('backup') }}");
+          jQuery("#backup_progress").show();
+          jQuery("#progressbar").progressBar('');
+        });
+
+
+        jQuery.Updater("{{ url_for('.backup_progress', app_name='picasaweb_app') }}", {
+          method: 'GET',
+          data: '',
+          type: 'json',
+          interval: 2000
+        }, function(data){
+          if(data.status){
+            var msg = 'Backup in progress: ' + data.progress + '%';
+            /*if(jQuery.browser.msie){
+              jQuery('#backup_now').attr('disabled', 'disabled');
+              jQuery('#backup_now').val(msg);
+            } else {
+              jQuery('#backup_now').attr('disabled', true).val(msg);
+              }*/
+            jQuery("#backup_now").hide();
+            jQuery("#backup_progress").show();
+            jQuery("#progressbar").progressBar(data.progress);
+          } else {
+            if(jQuery.browser.msie){
+              jQuery('#backup_now').attr('disabled', '');
+              jQuery('#backup_now').val('Backup now');
+            } else {
+              jQuery('#backup_now').attr('disabled', false).val('Backup now');
+            }
+            jQuery('#backup_progress').hide();
+            jQuery("#backup_now").show();
+          }
+        });
+      });
+    </script>
+    <div class="clearfix schedule_row">
+      {{ schedule_form.interval.label(style='width:100px;float:left') }}
+      <span style="width:200px; float:left;">
+        {{ schedule_form.interval() }}
+      </span>
+    </div>
+
+    <div id="schedule_container">
+      {% from "picasaweb_app/_formhelpers.html" import render_current_schedule %}
+      {{ render_current_schedule(schedule_form) }}
+    </div>
+    <script type="text/javascript">
+      jQuery(document).ready(function(){
+        jQuery('#schedule-interval').change(function(){
+          var interval = jQuery(this).val();
+          jQuery('#schedule_container').html(jQuery('#' + interval).html());
+        });
+      });
+    </script>
+    <div class="clearfix"><input type="submit" value="Update" class="button" /></div>
+  </div>
+</form>
+</div>
+
+<div id="monthly" class="visuallyhidden">
+  {% from "picasaweb_app/_formhelpers.html" import render_monthly_schedule %}
+  {{ render_monthly_schedule(schedule_form) }}
+</div>
+
+<div id="weekly" class="visuallyhidden">
+  {% from "picasaweb_app/_formhelpers.html" import render_weekly_schedule %}
+  {{ render_weekly_schedule(schedule_form) }}
+</div>
+
+<div id="daily" class="visuallyhidden">
+  {% from "picasaweb_app/_formhelpers.html" import render_daily_schedule %}
+  {{ render_daily_schedule(schedule_form) }}
+</div>
+{% endblock content %}
+

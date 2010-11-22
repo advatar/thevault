@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Archives: Google Contacts</h2>
+  <h3>Account: {{ profile['email'] }}</h3>
+
+  <div class="content-body">
+    <table class="archives_table" cellspacing="0" cellpadding="0">
+      <thead>
+        <tr>
+          <th width="150" align="left">Date</th>
+          <th width="150" align="center">Time</th>
+          <th>&nbsp;</th>
+          <th width="200" align="center">Items</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for archive in archives.items %}
+        <tr>
+          <td>{{ archive.archived_at.strftime("%b %d, %Y") }}</td>
+          <td align="center">{{ archive.archived_at.strftime("%I:%M %p") }}</td>
+          <td>&nbsp;</td>
+          <td align="center">
+            <a href="{{ url_for('archive', archive_id=archive.id) }}">View Contacts</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="paginate">
+      {% from "google_contacts_app/_formhelpers.html" import render_pagination %}
+      {{ render_pagination(archives) }}
+    </div>
+  </div>
+
+{% endblock content %}
+

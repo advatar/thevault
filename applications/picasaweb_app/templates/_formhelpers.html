@@ -1,0 +1,80 @@
+{% macro render_settings(field) %}
+  <li>{{ field() }} {{ field.label }}</li>
+{% endmacro %}
+
+{% macro render_daily_schedule(form) %}
+  <div class="clearfix schedule_row">
+    {{ form.hourofday.label(style='width:100px;float:left;') }}
+    <span style='float:left;width:200px'>
+      {{ form.hourofday() }}:{{ form.minuteofhour() }} {{ form.ampm() }}
+    </span>
+  </div>
+{% endmacro %}
+
+{% macro render_monthly_schedule(form) %}
+  <div class="clearfix schedule_row">
+    {{ form.dayofmonth.label(style='width:100px;float:left;') }}
+    <span style='float:left;width:200px'>
+      {{ form.dayofmonth() }}
+    </span>
+  </div>
+  {{ render_daily_schedule(form) }}
+{% endmacro %}
+
+{% macro render_weekly_schedule(form) %}
+  <div class="clearfix schedule_row">
+    {{ form.dayofweek.label(style='width:100px;float:left;') }}
+    <span style='float:left;width:200px'>
+      {{ form.dayofweek() }}
+    </span>
+  </div>
+  {{ render_daily_schedule(form) }}
+{% endmacro %}
+
+{% macro render_current_schedule(form) %}
+  {% if form.interval.data == 'daily' %}
+    {{ render_daily_schedule(form) }}
+  {% elif form.interval.data == 'weekly' %}
+    {{ render_weekly_schedule(form) }}
+  {% elif form.interval.data == 'monthly' %}
+    {{ render_monthly_schedule(form) }}
+  {% endif %}
+{% endmacro %}
+
+{% macro render_pagination(pagination) %}
+<div class='pagination'>
+    <ul>
+      <li>Pages</li>
+    {% if pagination.pages > 1 and pagination.page > 1 %}
+      <li><a href="?page={{ 1 }}&per_page={{ pagination.per_page }}">First</a></li>
+    {% endif %}
+    {% if pagination.has_prev %}
+      <li><a href="?page={{ pagination.prev_num }}&per_page={{ pagination.per_page }}">Prev</a></li>
+    {% endif %}
+    {% for page in pagination.iter_pages() %}
+      {% if page %}
+        {% if page != pagination.page %}
+          <li><a href="?page={{ page }}&per_page={{ pagination.per_page }}">{{ page }}</a></li>
+        {% else %}
+          <li><strong>{{ page }}</strong></li>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+    {% if pagination.has_next %}
+      <li><a href="?page={{ pagination.next_num }}&per-page={{ pagination.per_page }}">Next</a></li>
+    {% endif %}
+    {% if pagination.pages > 1 and pagination.page < pagination.pages %}
+      <li><a href="?page={{ pagination.pages }}&per_page={{ pagination.per_page }}">Last</a></li>
+    {% endif %}
+    </ul>
+  </div>
+{% endmacro %}
+
+{% macro render_comment(comment) %}
+  {% if comment.get('from', None) and comment['from'].get('name', None) and comment.get('message', None) %}
+  <li>
+    <span class="commenter">{{ comment['from']['name'] }}</span> {{ comment['message'] }}
+  </li>
+  {% endif %}
+{% endmacro %}
+

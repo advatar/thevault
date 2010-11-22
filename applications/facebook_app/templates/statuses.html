@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Archives: Facebook</h2>
+  <h3>Account: {{ profile['name'] }}</h3>
+  <div class="content-body">
+  <div class="archive_container">
+    <div class="container_header">
+      <h4>Statuses</h4>
+      <a href="{{ url_for('archives') }}" class="back_to_archives_link">&laquo; Back to Archives</a>
+    </div>
+  <table cellpadding="0" cellspacing="0" class="archive_table" style="margin-top:15px">
+    <thead>
+      <tr>
+        <th style="width:12%" align="left">Date</th>
+        <th style="width:10%" align="left">Time</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for status in statuses.items %}
+    <tr class="status-message">
+      <td valign='top'>{{ status['updated_time'] | strptime("%Y-%m-%dT%H:%M:%S+0000") | utc_to_local | strftime("%b %d, %Y") }}</td>
+      <td valign='top'>{{ status['updated_time'] | strptime("%Y-%m-%dT%H:%M:%S+0000") | utc_to_local | strftime("%I:%M %p") }}</td>
+      <td valign='top'>
+        {{ status['message'] | safe }}
+        {% if status['comments'] | length > 0 %}
+        <div class="status_comments">
+          <a href="#" class="comment_toggle" id="comments-{{ status['id'] }}">Show Comments</a>
+          <ul class="status_comment_list" style='display:none' id="comment_list-{{ status['id'] }}">
+            {% from "facebook_app/_formhelpers.html" import render_comment %}
+            {% for comment in status['comments']['data'] %}
+              {{ render_comment(comment) }}
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  <div class="paginate">
+    {% from "facebook_app/_formhelpers.html" import render_pagination %}
+    {{ render_pagination(statuses) }}
+  </div>
+</div>
+  <script type="text/javascript">
+    jQuery(document).ready(function(){
+      jQuery('.comment_toggle').toggle(
+        function(){
+          var status_id = jQuery(this).attr('id').split('-')[1];
+          jQuery('#comment_list-' + status_id).slideDown(1000);
+          return false;
+        },
+        function(){
+          var status_id = jQuery(this).attr('id').split('-')[1];
+          jQuery('#comment_list-' + status_id).slideUp(1000);
+          return false;
+        }
+      );
+    });
+  </script>
+{% endblock content %}

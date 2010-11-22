@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Archives: Google Contacts</h2>
+  <h3>Account: {{ profile['email'] }}</h3>
+  
+  <div class="content-body">
+    <div class="archive_container">
+      <div class="container_header">
+        <h4>Contacts</h4>
+        <a href="{{ url_for('archives') }}">&laquo; Back to Archives</a>
+      </div>
+    </div>
+    <table cellpadding="0" cellspacing="0" class="archive_table contacts">
+      <tbody>
+      {% for contact in contacts.items %}
+        <tr>
+          <td style="border-bottom:1px solid #e6e6e6;padding:10px 0 10px 0">
+            {% if contact | hasattr('title') and contact.title and contact.title.text %}
+            <div class="contact_details"><strong>Contact</strong>: {{ contact.title.text }}</div>
+            {% endif %}
+
+            {% if contact | hasattr("name") %}
+            <div class="contact_details"><strong>Name</strong>: {{ contact.name }}</div>
+            {% endif %}
+            
+            {% if contact | hasattr("nickname") and contact.nickname %}
+            <div class="contact_details"><strong>Nickname</strong>: {{ contact.nickname }}</div>
+            {% endif %}
+
+            {% if contact | hasattr("email") and contact.email %}
+            <div class="contact_details"><strong>Email</strong>:
+              <ul style="list-style-type: disc; list-style-position:inside;">
+              {% for email in contact.email %}
+              <li><a href="mailto:{{ email.address }}">{{ email.address }}</a> {{ email.primary == 'true' and ' - primary' or '' }}</li>
+              {% endfor %}
+            </ul>
+              </div>
+            {% endif %}
+
+            {% if contact | hasattr("phone_number") and contact.phone_number %}
+            <div class="contact_details"><strong>Phone</strong>:
+              <ul style="list-style-type: disc; list-style-position:inside;">
+              {% for phone in contact.phone_number %}
+              <li>{{ phone.text }}</li>
+              {% endfor %}
+              </ul>
+              </div>
+            {% endif %}
+
+            {% if contact | hasattr("postal_address") and contact.postal_address %}
+            <div class="contact_details"><strong>Postal Address</strong>:
+              <ul>
+                {% for postal_address in contact.postal_address %}
+                  <li>{{ postal_address.text | nl2br | safe  }}</li>
+                {% endfor %}
+              </ul>
+              </div>
+            {% endif %}
+
+            {% if contact | hasattr('im') and contact.im %}
+            <div class="contact_details"><strong>IM</strong>:
+              <ul style="list-style-type: disc; list-style-position:inside;">
+              {% for im in contact.im %}
+                <li>{{ im.address }} - {{ im.protocol.split('#')[-1] }}</li>
+              {% endfor %}
+              </ul>  
+              </div>
+            {% endif %}
+
+            {% if contact | hasattr('organization') and contact.organization %}
+              {% if contact.organization.org_name %}
+              <div class="contact_details"><strong>Organization</strong>: {{ contact.organization.org_name.text }}</div>    
+              {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <div class="paginate">
+      {% from "google_contacts_app/_formhelpers.html" import render_pagination %}
+      {{ render_pagination(contacts) }}
+    </div>
+  </div>
+
+
+{% endblock content %}

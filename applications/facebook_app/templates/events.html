@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Archives</h2>
+  <h3>Account: {{ profile['name'] }}</h3>
+  <div class="content-body">
+  <div class="archive_container">
+    <div class="container_header">
+      <h4>Events</h4>
+      <a href="{{ url_for('archives') }}" class="back_to_archives_link">Back to Archives</a>
+    </div>
+  <table style="width:100%;margin-top:15px;">
+    <tbody>
+    {% for event in events.items %}
+      <tr class="event_heading">
+        <td>{{ event['start_time'] | strptime("%Y-%m-%dT%H:%M:%S+0000") | utc_to_local | strftime("%A, %b %d, %Y") }}</td>
+      </tr>
+      <tr class="event_body">
+        <td>
+          <div style="padding-bottom:10px;">
+            <p><strong>{{ event['name'] }}</strong></p>
+            <div class="clearfix">
+              <span style="float:left; width:100px">Where:</span>
+              <span style="float:left; width: 300px">{{ event['location'] }}</span>
+            </div>
+            <br style="clear:both" />
+            <div class="clearfix">
+              <span style="float:left; width:100px">Start:</span>
+              <span style="float:left; width: 300px">
+                {{ event['start_time'] | strptime("%Y-%m-%dT%H:%M:%S+0000") | utc_to_local | strftime("%b %d, %Y %I:%M %p") }}
+              </span>
+            </div>
+            <br style="clear:both" />
+            <div class="clearfix">
+              <span style="float:left; width:100px">End:</span>
+              <span style="float:left; width: 300px">
+                {{ event['end_time'] | strptime("%Y-%m-%dT%H:%M:%S+0000") | utc_to_local | strftime("%b %d, %Y %I:%M %p") }}
+              </span>
+            </div>
+            
+            {% if event['comments'] | length > 0 %}
+            <div class="event_comments">
+              <a href="#" class="comment_toggle" id="comments-{{ event['id'] }}">Show Comments</a>
+              <ul class="event_comment_list" style="display:none" id="comment_list-{{ event['id'] }}">
+              {% from "facebook_app/_formhelpers.html" import render_comment %}
+              {% for comment in event['comments'] %}
+                {{ render_comment(comment) }}
+              {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  <div class="paginate">
+    {% from "facebook_app/_formhelpers.html" import render_pagination %}
+    {{ render_pagination(events) }}
+  </div>
+</div>
+  <script type="text/javascript">
+    jQuery(document).ready(function(){
+      jQuery('.comment_toggle').toggle(
+        function(){
+          var status_id = jQuery(this).attr('id').split('-')[1];
+          jQuery('#comment_list-' + status_id).slideDown(1000);
+          return false;
+        },
+        function(){
+          var status_id = jQuery(this).attr('id').split('-')[1];
+          jQuery('#comment_list-' + status_id).slideUp(1000);
+          return false;
+        }
+      );
+    });
+  </script>
+{% endblock content %}

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Archives: Picasaweb</h2>
+<h3>Account: {{ profile['uri'] }}</h3>
+<div class='content-body'>
+  <div class='album_archive_container'>
+    <div class='container_header'>
+      <h4>Albums</h4>
+      <a href="{{ url_for('archives') }}">&laquo; Back to Archives</a>
+    </div>
+
+    <div class="albums_container">
+      {% for row in albums.items | batch(7) %}
+      <div class="album_row clearfix">
+        {% for album in row %}
+        <div class="album_container">
+          <div class="album_border">
+            <a href="{{ url_for('archive_album', archive_id=archive_id, album_id=album['id']) }}">
+              <img src="{{ url_for('album_photo_path', album_id=album['id'], photo_id=album['photos'].keys()[0], size='thumbnail') }}" class="thumbnail" />
+            </a>
+          </div>
+          <div class="album_name album_meta">{{ album['title'] }}</div>
+          <div class="album_meta photo_count">{{ album['count'] }} photos</div>
+        </div>  
+        {% endfor %}
+      </div>  
+      {% endfor %}
+    </div>
+  </div>
+  <div class='paginate'>
+    {% from 'picasaweb_app/_formhelpers.html' import render_pagination %}
+    {{ render_pagination(albums) }}
+  </div>
+</div>
+<script type='text/javascript'>
+  jQuery(document).ready(function(){
+    jQuery('a.photo').colorbox();
+    jQuery('img.thumbnail').each(function(){
+      jQuery(this).cjObjectScaler({
+        destElem: jQuery(this).parent().parent(),
+        method: 'fit',
+        fade: 800
+      });
+    });
+  });
+</script>
+{% endblock content %}

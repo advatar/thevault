@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Preferences: Facebook</h2>
+
+<h3>Account: {{ profile['name'] }}</h3>
+<div class="content-body clearfix">
+<form method="POST" action="{{ url_for("preferences") }}">
+  {{ schedule_form.csrf }}
+  <div class="formgroup backup_items">
+    <h4>Choose items to backup</h4>
+    <ul>
+      {% from "facebook_app/_formhelpers.html" import render_settings %}
+      {{ render_settings(settings_form.friends) }}
+      {{ render_settings(settings_form.albums) }}
+      {{ render_settings(settings_form.statuses) }}
+      {{ render_settings(settings_form.events) }}
+      {{ render_settings(settings_form.notes) }}
+      {{ render_settings(settings_form.links) }}
+    </ul>
+
+    <div><input id="backup_now" type="button" value="Backup Now" class="button" /></div>
+    <div id="backup_progress" style="display:none">
+      <div>Backup progress</div>
+      <div id="progressbar"></div>
+    </div>
+    <script type="text/javascript">
+      jQuery(document).ready(function(){
+        jQuery('#backup_now').click(function(){
+          if(jQuery.browser.msie){
+            jQuery(this).attr('disabled', 'disabled');
+          } else {
+            jQuery(this).attr('disabled', true);
+          }
+          jQuery(this).val('Starting backup');
+
+          jQuery.get("{{ url_for('backup') }}");
+          jQuery("#backup_progress").show();
+          jQuery("#progressbar").progressBar('');
+        });
+
+
+        jQuery.Updater("{{ url_for('.backup_progress', app_name='facebook_app') }}", {
+          method: 'GET',
+          data: '',
+          type: 'json',
+          interval: 2000
+        }, function(data){
+          if(data.status){
+            var msg = 'Backup in progress: ' + data.progress + '%';
+            /*if(jQuery.browser.msie){
+              jQuery('#backup_now').attr('disabled', 'disabled');
+              jQuery('#backup_now').val(msg);
+            } else {
+              jQuery('#backup_now').attr('disabled', true).val(msg);
+              }*/
+            jQuery("#backup_now").hide();
+            jQuery("#backup_progress").show();
+            jQuery("#progressbar").progressBar(data.progress);
+          } else {
+            if(jQuery.browser.msie){
+              jQuery('#backup_now').attr('disabled', '');
+              jQuery('#backup_now').val('Backup now');
+            } else {
+              jQuery('#backup_now').attr('disabled', false).val('Backup now');
+            }
+            jQuery('#backup_progress').hide();
+            jQuery("#backup_now").show();
+          }
+        });
+      });
+    </script>
+  </div>
+
+  <div class="formgroup backup_schedule">
+    <h4>Backup Schedule</h4>
+    <div class="clearfix schedule_row">
+      {{ schedule_form.interval.label(style='width:100px;float:left') }}
+      <span style="width:200px; float:left">
+        {{ schedule_form.interval() }}
+      </span>
+    </div>
+
+    <div id='schedule_container'>
+      {% from "facebook_app/_formhelpers.html" import render_current_schedule %}
+      {{ render_current_schedule(schedule_form) }}
+    </div>
+    <script type="text/javascript">
+      jQuery(document).ready(function(){
+        jQuery('#schedule-interval').change(function(){
+          var interval = jQuery(this).val();
+          jQuery('#schedule_container').html(jQuery('#' + interval).html());
+        });
+      });
+    </script>
+    <div class="clearfix"><input type="submit" value="Update" class="button" /></div>
+  </div>
+</form>
+</div>
+<div id="monthly" class="visuallyhidden">
+  {% from "facebook_app/_formhelpers.html" import render_monthly_schedule %}
+  {{ render_monthly_schedule(schedule_form) }}
+</div>
+
+<div id="weekly" class="visuallyhidden">
+  {% from "facebook_app/_formhelpers.html" import render_weekly_schedule %}
+  {{ render_weekly_schedule(schedule_form) }}
+</div>
+
+<div id="daily" class="visuallyhidden">
+  {% from "facebook_app/_formhelpers.html" import render_daily_schedule %}
+  {{ render_daily_schedule(schedule_form) }}
+</div>
+  
+{% endblock content %}

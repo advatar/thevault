@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Archives: Facebook</h2>
+  <h3>Account: {{ profile['name'] }}</h3>
+  <div class="content-body">
+  <div class="album_archive_container">
+    <div class="container_header">
+      <h4>{{ album['name'] }}</h4>
+      <div><a href="{{ url_for('archive_album', archive_id=archive_id, album_id=album_id) }}">&laquo; Back to Album</a></div>
+    </div>
+    <div>
+      <div class="photo_paginator">
+        <div class="photo_page">Photo {{ photos.photo_of_total }} of {{ photos.photos_count() }}</div>
+        <div class="paginator">
+        {% if photos.previous_photo_id %}
+          <a href="{{ url_for('archive_album_photo', archive_id=archive_id, album_id=album_id, photo_id=photos.previous_photo_id) }}">
+            Previous
+          </a>
+        {% endif %}
+        &nbsp;
+        {% if photos.next_photo_id %}
+          <a href="{{ url_for('archive_album_photo', archive_id=archive_id, album_id=album_id, photo_id=photos.next_photo_id) }}">
+            Next
+          </a>
+        {% endif %}
+        </div>
+      </div>
+      <div class="photo_box">
+        <img src="{{ url_for('album_photo_path', album_id=album_id, photo_id=photos.photo_id, size='photo') }}" class="photo" />
+      </div>
+      <div>
+        <div class="photo_caption">
+          {{ photos.current_photo['name'] }}
+        </div>
+        <div class="photo_comments">
+          {% if photos.current_photo['comments'] | length > 0 %}
+          <div>{{ photos.current_photo['comments'] | length }} Comments</div>
+          <ul>
+            {% from "facebook_app/_formhelpers.html" import render_comment %}
+            {% for comment in photos.current_photo['comments'] %}
+              {{ render_comment(comment) }}
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+  <script type="text/javascript">
+    jQuery(document).ready(function(){
+      jQuery('img.photo').each(function(){
+        if(jQuery(this).height() > 500){
+          jQuery('.photo_box').css('height','600px');
+        }
+        jQuery(this).cjObjectScaler({
+          destElem: jQuery(this).parent(),
+          method: 'fit',
+          fade: 800
+        });
+      });
+    });
+  </script>
+{% endblock content %}
+

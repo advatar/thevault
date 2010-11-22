@@ -1,0 +1,23 @@
+
+<button class="setup_link facebook_app_setup_btn" href="{{ url_for('facebook_app.authorize') }}">Authorize</button>
+  <script type="text/javascript">
+    jQuery(document).ready(function(){
+      jQuery('.facebook_app_setup_btn').click(function(e){
+        var width = 600;
+        var height = 400;
+        var left = (document.body.clientWidth - width)/2;
+        var top = (document.body.clientHeight - height)/2;
+        var win = window.open(jQuery(this).attr('href'), 'auth_win',
+          "width="+width+",height="+height+",left="+left+",top="+top+",screenY="+top+",screenX="+left+",toolbar=no,resizable=yes,location=no,status=no,menubar=no,copyhistory=no");
+        win.focus();
+        function poll(){
+          if(win.closed){
+            window.location.href = "{{ url_for('facebook_app.preferences') }}";
+          }
+          setTimeout(poll, 1000);
+        }
+        setTimeout(poll, 1000);
+        return false;
+      });
+    });
+  </script>

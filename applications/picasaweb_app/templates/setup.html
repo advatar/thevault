@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Setup</h1>
+  <p>Please login to Google to authorize MyCube Vault to backup your data.</p>
+  <p>
+    <a href="{{ url_for('picasaweb_app.authorize') }}" style="border:0">
+      <button class="setup_button" href="{{ url_for('picasaweb_app.authorize') }}">Login to Google</button>
+    </a>
+  </p>
+  <script type="text/javascript">
+    jQuery(document).ready(function(){
+      jQuery('.setup_button').click(function(e){
+        var width = 600;
+        var height = 550;
+        var left = (document.body.clientWidth - width)/2;
+        var top = (document.body.clientHeight - height)/2;
+        var win = window.open(jQuery(this).attr('href'), 'auth_win',
+          "width="+width+",height="+height+",left="+left+",top="+top+",screenY="+top+",screenX="+left+",toolbar=no,resizable=yes,location=no,status=no,menubar=no,copyhistory=no");
+        win.focus();
+        function poll(){
+          if(win.closed){
+            window.location.href = "{{ url_for('picasaweb_app.preferences') }}";
+          }
+          setTimeout(poll, 1000);
+        }
+        setTimeout(poll, 1000);
+        return false;
+      });
+    });
+  </script>
+{% endblock content %}
+

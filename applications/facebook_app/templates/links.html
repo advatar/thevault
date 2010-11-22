@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Archives: Facebook</h2>
+  <h3>Account: {{ profile['name'] }}</h3>
+  <div class="content-body">
+  <div class="archive_container">
+    <div class="container_header">
+      <h4>Links</h4>
+      <a href="{{ url_for('archives') }}" class="back_to_archives_link">Back to Archives</a>
+    </div>
+    <table cellpadding="0" cellspacing="0" class="archive_table">
+    <tbody>
+    {% for link in links.items %}
+      <tr class="fblink">
+        <td align="left"><a href="{{ link['link'] }}" target="_blank">{{ link['link'] }}</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+  </div>
+  <div class="paginate">
+    {% from "facebook_app/_formhelpers.html" import render_pagination %}
+    {{ render_pagination(links) }}
+  </div>
+</div>
+{% endblock content %}
+

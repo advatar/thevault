@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Archives: Facebook</h2>
+  <h3>Account: {{ profile['name'] }}</h3>
+  <div class="content-body">
+  <table class="archives_table" cellspacing="0" cellpadding="0">
+    <thead>
+      <tr>
+        <th width="150" align='left'>Date</th>
+        <th width="150" align='center'>Time</th>
+        <th>&nbsp;</th>
+        <th width="200" align='center'>Items</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for archive in archives.items %}
+      <tr>
+        <td>{{ archive.archived_at.strftime("%b %d, %Y") }}</td>
+        <td align='center'>{{ archive.archived_at.strftime("%I:%M %p") }}</td>
+        <td>&nbsp;</td>
+        <td align='center'>
+          <select id="archive-{{ archive.id }}">
+            <option value="select">Choose</option>
+            <option value="friends">Friends</option>
+            <option value="albums">Albums</option>
+            <!--<option value="photos">Photos of Me</option> -->
+            <option value="notes">Notes</option>
+            <option value="statuses">Statuses</option>
+            <option value="events">Events</option>
+            <option value="links">Links</option>
+          </select>
+          <script type="text/javascript">
+            jQuery(document).ready(function(){
+              jQuery("#archive-{{ archive.id }}").change(function(e){
+                if(jQuery(this).val() != "select"){
+                  window.location = "{{ url_for('archive', archive_id= archive.id) }}/" + jQuery(this).val();
+                }
+              });
+            });
+          </script>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  
+  <div class="paginate">
+    {% from "facebook_app/_formhelpers.html" import render_pagination %}
+    {{ render_pagination(archives) }}
+  </div>
+  </div>
+{% endblock %}

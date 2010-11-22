@@ -1,0 +1,52 @@
+{% macro render_text_input(field) %}
+    {% with errors = field.errors %}
+      {% if errors %}
+        {{ field.label }}:<br />
+        {{ field(class='error') | safe }}
+        <ul class='errors'>
+        {% for error in errors %}
+          <li>{{ error|e }}</li>
+        {% endfor %}
+        </ul>
+      {% else %}
+        {{ field.label }}:<br />
+        {{ field() | safe }}
+      {% endif %}
+    {% endwith %}
+{% endmacro %}
+
+{% macro render_pagination(pagination) %}
+  <div class='pagination'>
+    <ul>
+    {% if pagination.pages > 1 and pagination.page > 1 %}
+      <li><a href="?page={{ 1 }}&per_page={{ pagination.per_page }}">First</a></li>
+    {% endif %}
+    {% if pagination.has_prev %}
+      <li><a href="?page={{ pagination.prev_num }}&per_page={{ pagination.per_page }}">Prev</a></li>
+    {% endif %}
+    {% for page in pagination.iter_pages() %}
+      {% if page %}
+        {% if page != pagination.page %}
+          <li><a href="?page={{ page }}&per_page={{ pagination.per_page }}">{{ page }}</a></li>
+        {% else %}
+          <li><strong>{{ page }}</strong></li>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+    {% if pagination.has_next %}
+      <li><a href="?page={{ pagination.next_num }}&per-page={{ pagination.per_page }}">Next</a></li>
+    {% endif %}
+    {% if pagination.pages > 1 and pagination.page < pagination.pages %}
+      <li><a href="?page={{ pagination.pages }}&per_page={{ pagination.per_page }}">Last</a></li>
+    {% endif %}
+    </ul>
+  </div>
+{% endmacro %}
+
+{% macro render_sidebar_service(request,service) %}
+<a href="#" onclick="return false;">{{ service['title'] }}</a>
+<ul class="account">
+  <li><a href="{{ url_for('%s.preferences' % service['name']) }}" class="{{ request.path.startswith(url_for('%s.preferences' % service['name'])) and 'current_page' or '' }}">Preferences</a></li>
+  <li><a href="{{ url_for('%s.archives' % service['name']) }}" class="{{ request.path.startswith(url_for('%s.archives' % service['name'])) and 'current_page' or '' }}">Archives</a></li>
+</ul>
+{% endmacro %}

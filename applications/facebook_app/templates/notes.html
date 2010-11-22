@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+  <h2>Archives: Facebook</h2>
+  <h3>Account: {{ profile['name'] }}</h3>
+
+	<script type="text/javascript">
+		var note_viewer = function(viewer_id){
+		    var note_id = viewer_id.split("-")[1];
+        jQuery("#" + viewer_id).toggle(
+        function(){
+		            jQuery("#note-message-" + note_id).slideDown('slow');
+		        },
+		        function(){
+		            jQuery("#note-message-" + note_id).slideUp('slow');
+		        }
+		    )
+		}
+  </script>
+  <div class="content-body">
+  <div class="archive_container">
+    <div class="container_header"> 
+      <h4>Notes</h4>
+      <a href="{{ url_for('archives') }}" class="back_to_archives_link">&laquo; Back to Archives</a>
+    </div>
+    <table cellpadding="0" cellspacing="0" class="archive_table" style="width:100%; margin-top:15px;">
+      <thead>
+        <tr>
+          <th style="width:20%" align="left">From</th>
+          <th align="left">Subject</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for note in notes.items %}
+        <tr class="note-header">
+          <td>{{ note['from']['name'] }}</td>
+          <td><a href="#" id="viewer-{{ note['id'] }}">{{ note['subject'] }}</a></td>
+        </tr>
+        <tr class="note-message">
+          <td colspan="2" style="width:100%;">
+            <div style="width:100%; overflow-x: scroll; display:none" id="note-message-{{ note['id'] }}">
+              {{ note['message'] | safe }}
+            </div>
+          </td>
+        </tr>
+		    <script type="text/javascript">
+		      jQuery(document).ready(function(){
+		        note_viewer('viewer-{{ note['id'] }}');
+		      });
+		    </script>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>    
+  <div class="paginate">
+    {% from "facebook_app/_formhelpers.html" import render_pagination %}
+    {{ render_pagination(notes) }}
+  </div>
+</div>
+{% endblock content %}
+
+

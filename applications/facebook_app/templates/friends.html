@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+  <h2>Archives: Facebook</h2>
+  <h3>Account: {{ profile['name'] }}</h3>
+
+  <div class="content-body">
+  <div class="archive_container">
+    <div class="container_header">
+      <h4>Friends</h4>
+      <a href="{{ url_for('archives') }}" class="back_to_archives_link">&laquo; Back to Archives</a>
+    </div>
+    <table cellpadding="0" cellspacing="0" class="archive_table friends">
+      <tbody>
+      {% for friend in friends.items %}
+      <tr>
+        <td class="profile_photo"><a href="{{ friend['link'] }}" target="_blank"><img src="{{ url_for('profile_pics_path', image_file='%s.jpg' % friend['id']) }}" /></a></td>
+        <td>
+          {{ friend['name'] }}<br />
+          <a href="{{ friend['link'] }}" target="_blank">{{ friend['link'] }}</a>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="paginate">
+    {% from "facebook_app/_formhelpers.html" import render_pagination %}
+    {{ render_pagination(friends) }}
+  </div>
+</div>
+{% endblock content %}
