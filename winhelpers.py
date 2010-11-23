@@ -1,6 +1,9 @@
 """
 Miscellaneous windows function
 """
+import sys
+if sys.platform == "win32":
+    from win32com.client import Dispatch
 
 def get_user_folders():
     """
@@ -38,4 +41,23 @@ def get_user_folders():
         _winreg.CloseKey(reg_key)
         _winreg.CloseKey(registry)
         return {}
+# http://www.blog.pythonlibrary.org/2010/01/23/using-python-to-create-shortcuts/
+def create_shortcut(path, target='', wDir='', icon=''):
+    ext = path[-3:]
+    if ext == "url":
+        shortcut = file(path, "w")
+        shortcut.write('[InternetShortcut]\n')
+        shortcut.write('URL=%s' % target)
+        shortcut.close()
+    else:
+        shell = Dispatch('WScript.Shell')
+        shortcut = shell.CreateShortCut(path)
+        shortcut.Targetpath = target
+        shortcut.WorkingDirectory = wDir
+        if icon == '':
+            pass
+        else:
+            shortcut.IconLocation = icon
+        shortcut.save()
 
+# vim: set et sts=4 ts=4 sw=4:

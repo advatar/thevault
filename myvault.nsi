@@ -65,7 +65,7 @@ Section "Shortcuts"
   CreateDirectory "$SMPROGRAMS\MyCube Vault"
   CreateShortCut "$SMPROGRAMS\MyCube Vault\MyCube Vault.lnk" "$INSTDIR\launcherwindows.exe" "" "$INSTDIR\launcherwindows.exe" 0
   CreateShortCut "$SMPROGRAMS\MyCube Vault\Uninstall.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
-  CreateShortCut "$SMSTARTUP\MyCube Vault.lnk" "$INSTDIR\launcherwindows.exe"
+  #CreateShortCut "$SMSTARTUP\MyCube Vault.lnk" "$INSTDIR\launcherwindows.exe"
 SectionEnd
 
 Section "BackupDir"

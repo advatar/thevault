@@ -8,11 +8,16 @@ import sys
 import os
 import time
 import simplejson as json
+from settings import APP_DIR
 from myvault.models import db, Archive, BackupProgress, Settings,\
         UserPreference
 from myvault.helpers import stringify_unicode_keys
 
 import datetime
+
+if sys.platform == "win32":
+    import winhelpers
+    import pythoncom
 
 class ProgressMonitor(object):
     def __init__(self, module):
@@ -206,7 +211,29 @@ MACOSX_LAUNCH_AGENT_PLIST = """<?xml version="1.0" encoding="UTF-8"?>
 """
 def run_at_startup(value):
     if sys.platform == "win32":
-        pass
+        try:
+            pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
+        except pythoncom.com_error:
+            pass
+
+        folders = winhelpers.get_user_folders()
+        filename = "MyCube Vault.lnk"
+        path = os.path.join(folders['Startup'], 'MyCube Vault.lnk')
+        working_dir = os.path.join(os.environ['PROGRAMFILES'], 'MyCube Vault')
+        target = os.path.join(os.environ['PROGRAMFILES'], 'MyCube Vault', 'launcherwindows.exe')
+        icon = os.path.join(os.environ['PROGRAMFILES'], 'MyCube Vault', 'icons', 'mycubevaulticon.ico')
+
+        if value:
+            winhelpers.create_shortcut(path, target, wDir=working_dir, icon=icon)
+        else:
+            if os.path.exists(path):
+                os.remove(path)
+        
+        try:
+            pythoncom.CoUnitialize()
+        except Exception, e:
+            pass
+
     elif sys.platform == 'darwin':
         filename = "com.mycube.vault.agent.plist"
         plist = "%s/Library/LaunchAgents/%s" % (os.environ['HOME'], filename,)
@@ -216,7 +243,8 @@ def run_at_startup(value):
             fd.write(MACOSX_LAUNCH_AGENT_PLIST)
             fd.close()
         else:
-            os.remove(plist)
+            if os.path.exists(plist):
+                os.remove(plist)
 
 
 # vim: set et sts=4 ts=4 sw=4:
