@@ -18,8 +18,10 @@ from werkzeug import import_string
 from myvault.helpers import get_logger, utc_to_local, stringify_unicode_keys,\
         backup_is_on_schedule, is_online
 from myvault.scheduler import add_schedule
-from myvault.models import db, Archive, BackupProgress
-from myvault.api import get_backup_progress, get_settings, get_recent_archive
+from myvault.models import db, Archive, BackupProgress, UserPreference
+from myvault.api import get_backup_progress, get_settings, get_recent_archive, \
+        save_settings, run_at_startup
+from myvault.forms import AppSettingsForm
 from settings import HOST, PORT, KRON
 
 _paragraph_re = re.compile(r'(?:\r\n|\r|\n){2,}')
@@ -190,3 +192,23 @@ def default_views(app):
 
         return make_response({'status': False, 'progress': 0})
 
+    @app.route('/settings')
+    def app_settings():
+        preference = get_settings('global')
+        form = AppSettingsForm(**preference)
+        return render_template('settings.html', form=form)
+
+    @app.route('/settings', methods=['POST'])
+    def do_app_settings():
+        from flask import request, flash, redirect
+
+        preference = get_settings('global')
+        new_preference = AppSettingsForm(request.form)
+        preference['run_at_startup'] = new_preference.run_at_startup.data
+        save_settings('global', preference)
+        run_at_startup(preference['run_at_startup'])
+
+        flash('Application settings updated!')
+        return redirect(url_for('.app_settings'))
+
+# vim: set sts=4 sw=4 ts=4:

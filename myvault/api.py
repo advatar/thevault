@@ -4,10 +4,12 @@ Copyright(c) 2010 DLMM Pte Ltd.
 licensing@mycube.com
 http://mycube.com/vault/license
 """
-
+import sys
+import os
 import time
 import simplejson as json
-from myvault.models import db, Archive, BackupProgress, Settings
+from myvault.models import db, Archive, BackupProgress, Settings,\
+        UserPreference
 from myvault.helpers import stringify_unicode_keys
 
 import datetime
@@ -129,6 +131,27 @@ def save_settings(module, data):
     db.session.add(settings)
     db.session.commit()
 
+def get_app_settings():
+    preferences = UserPreference.query and \
+            UserPreference.query.first()
+
+    if preferences:
+        return stringify_unicode_keys(json.loads(preferences.data))
+    return {}
+
+def save_app_settings(data):
+    preferences = UserPreference.query and \
+            UserPreference.query.first()
+
+    if preferences:
+        preferences.data = json.dumps(data)
+    else:
+        preferences = UserPreference(data=json.dumps(data))
+
+    db.session.add(preferences)
+    db.session.commit()
+
+
 def get_tokens(service):
     tokens = Token.query and \
             Token.query\
@@ -165,3 +188,35 @@ def schedule_from_form_time(value):
     s = "%s:%s %s" % (value['hourofday'], value['minuteofhour'], value['ampm'])
     t = time.strptime(s, "%I:%M %p")
     return {'timeofday': time.strftime("%H%M", t)}
+
+MACOSX_LAUNCH_AGENT_PLIST = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.mycube.vault</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>/Applications/MyCube Vault.app/Contents/MacOS/MyCube Vault</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+  </dict>
+</plist>
+"""
+def run_at_startup(value):
+    if sys.platform == "win32":
+        pass
+    elif sys.platform == 'darwin':
+        filename = "com.mycube.vault.agent.plist"
+        plist = "%s/Library/LaunchAgents/%s" % (os.environ['HOME'], filename,)
+
+        if value:
+            fd = open(plist, "w")
+            fd.write(MACOSX_LAUNCH_AGENT_PLIST)
+            fd.close()
+        else:
+            os.remove(plist)
+
+
+# vim: set et sts=4 ts=4 sw=4:

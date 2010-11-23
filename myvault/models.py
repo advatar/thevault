@@ -34,6 +34,13 @@ class Token(db.Model):
     service = db.Column(db.String(50))
     data = db.Column(db.Text())
 
+class UserPreference(db.Model):
+    __tablename__ = "user_preferences"
+
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.Text())
+
+
 class Settings(db.Model):
     __tablename__ = "settings"
 
@@ -50,4 +57,4 @@ class BackupProgress(db.Model):
     started_at = db.Column(db.DateTime)
     ended_at = db.Column(db.DateTime)
 
-
+# vim: set sts=4 ts=4 sw=4:

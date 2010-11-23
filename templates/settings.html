@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Settings</h2>
+
+<div class="content-body">
+<form method="POST" action="{{ url_for('.do_app_settings') }}">
+  {{ form.csrf }}
+  <div>
+    {{ form.run_at_startup() }} {{ form.run_at_startup.label() }}
+  </div>
+  <div>
+    <input type="submit" value="Save" />
+  </div>
+</form>
+</div>
+{% endblock content %}

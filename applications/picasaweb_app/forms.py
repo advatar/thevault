@@ -1,3 +1,9 @@
+"""
+MyCube Vault 1.0.0
+Copyright(c) 2010 DLMM Pte Ltd.
+licensing@mycube.com
+http://mycube.com/vault/license
+"""
 
 from flaskext.wtf import Form, Required, TextField, BooleanField,\
         SelectField, CheckboxInput, SelectMultipleField,\
@@ -35,3 +41,4 @@ class ScheduleForm(Form):
     ampm = SelectField('AMPM',
             choices=[('AM', 'AM'), ('PM','PM')])
 
+# vim: set et sts=4 ts=4 sw=4:
