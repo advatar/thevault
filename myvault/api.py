@@ -235,7 +235,7 @@ def run_at_startup(value):
             pass
 
     elif sys.platform == 'darwin':
-        filename = "com.mycube.vault.agent.plist"
+        filename = "com.mycube.vault.plist"
         plist = "%s/Library/LaunchAgents/%s" % (os.environ['HOME'], filename,)
 
         if value:
