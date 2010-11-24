@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import gobject
 import gtk
 import appindicator

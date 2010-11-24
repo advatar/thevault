@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 MyCube Vault 1.0.0
 Copyright(c) 2010 DLMM Pte Ltd.
