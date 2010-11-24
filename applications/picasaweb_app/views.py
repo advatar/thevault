@@ -134,7 +134,7 @@ def register():
     token = oauth.OAuthToken.from_string(urllib.unquote(access_token))
 
     auth = PicasaWeb(GOOGLE_OAUTH_CONSUMER_KEY, GOOGLE_OAUTH_CONSUMER_SECRET,
-            token.key, token.secret)
+            str(token.key), str(token.secret))
 
     try:
         profile = auth.get_profile()

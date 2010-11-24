@@ -127,9 +127,9 @@ def register():
     token = oauth.OAuthToken.from_string(urllib.unquote(access_token))
 
     auth = GoogleContacts(GOOGLE_OAUTH_CONSUMER_KEY, GOOGLE_OAUTH_CONSUMER_SECRET,
-            token.key, token.secret)
+            str(token.key), str(token.secret))
     try:
-        profile = auth.get_profile() 
+        profile = auth.get_profile()
     except Exception, e:
         logger.debug("authentication error: %r", e)
         flash("There was a problem authenticating you with Google. Please try again.", "error")
@@ -185,3 +185,4 @@ def archive(archive_id):
             archive_id=archive_id,
             profile=profile['profile'])
 
+# vim: set et sts=4 ts=4 sw=4
