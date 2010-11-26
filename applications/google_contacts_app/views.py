@@ -128,8 +128,10 @@ def register():
         return render_template("google_contacts_app/register.html")
     token = oauth.OAuthToken.from_string(urllib.unquote(access_token))
 
+    logger.debug('access_token: %s || secret: %s', token.key, token.secret)
     auth = GoogleContacts(GOOGLE_OAUTH_CONSUMER_KEY, GOOGLE_OAUTH_CONSUMER_SECRET,
             str(token.key), str(token.secret))
+    
     try:
         profile = auth.get_profile()
     except Exception, e:

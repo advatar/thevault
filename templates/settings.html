@@ -4,14 +4,45 @@
 <h2>Settings</h2>
 
 <div class="content-body">
+<style>
+.ui-autocomplete {
+  max-height: 350px;
+  overflow-y: auto;
+  font-size: 0.8em;
+  width: 500px;
+}
+
+* html .ui-autocomplete {
+  height: 350px;
+}
+
+#backup_dir {
+  width: 500px;
+}
+</style>
 <form method="POST" action="{{ url_for('.do_app_settings') }}">
   {{ form.csrf }}
   <div>
     {{ form.run_at_startup() }} {{ form.run_at_startup.label() }}
   </div>
   <div>
+    {{ form.backup_dir.label() }}:<br />
+    {{ form.backup_dir() }}
+  </div>
+  <div>
     <input type="submit" value="Save" />
   </div>
 </form>
 </div>
+<script type="text/javascript">
+  jQuery(document).ready(function(){
+    jQuery('#backup_dir').autocomplete({
+      source: "{{ url_for('.backup_dir_suggest') }}",
+      minLength: 3,
+      select: function(event, ui){
+        console.log('selected: ' + ui.item.value);
+      }
+    });
+  });
+</script>
 {% endblock content %}

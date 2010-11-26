@@ -6,14 +6,14 @@
 <div>
   <p>Many social media services have terms such as:</p>
   
-  <blockquote class="frontquote">FAILURE TO ADHERE TO THE CODE OF CONDUCT AND TERMS OF USE MAY RESULT, AMONG OTHER THINGS, IN TERMINATION OF YOUR ACCOUNT AND THE DELETION OF CONTENT THAT YOU HAVE POSTED ON FACEBOOK, WITH OR WITHOUT NOTICE, AS DETERMINED BY FACEBOOK IN ITS SOLE DISCRETION.</blockquote>
+  <blockquote class="frontquote">FAILURE TO ADHERE TO THE CODE OF CONDUCT AND TERMS OF USE MAY RESULT, AMONG OTHER THINGS, IN TERMINATION OF YOUR ACCOUNT AND THE DELETION OF CONTENT THAT YOU HAVE POSTED ON XXXXXXXX WITH OR WITHOUT NOTICE, AS DETERMINED BY FACEBOOK IN ITS SOLE DISCRETION.</blockquote>
   <p>MyCube Vault provides daily automatic backups, archiving, and export for all your social media data.</p>
   <p><strong>Be safe and start protecting your data now!</strong></p>
 </div>
 <table cellpadding="0" cellspacing="0" id="services_table">
   <thead>
     <tr>
-      <th colspan="4" align="left">Services</th>
+      <th colspan="3" align="left">Services</th>
     </tr>
   </thead>
   <tbody>
@@ -27,15 +27,12 @@
       </td>
       <td class="action_box" id="service-{{ service['name'] }}">
       </td>
-      <td width='50'>
-        {{ service['name'] in ['google_contacts_app', 'picasaweb_app'] and '*beta' or '&nbsp;' | safe }}
-      </td>
     </tr>
   {% endfor %}
   </tbody>
 </table>
 
-<p>All data is stored on your own computer in <em>{{ config['BACKUP_DIR'] }}</em></p>
+<p>All data is stored on your own computer in <em>{{ backup_dir }}</em></p>
 
 {% for _, service in enabled_services.iteritems() %}
 <script type="text/javascript">

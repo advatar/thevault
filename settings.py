@@ -14,9 +14,7 @@ import myvault.models
 from werkzeug import import_string
 import logging, logging.handlers
 import ConfigParser
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
-
 import kronos
 
 USBMODE = False
@@ -29,58 +27,81 @@ def get_path(target):
         new_path = os.path.sep.join(path.split(os.path.sep) + [target])
     return new_path
 
-HOST = "localhost.mycube.com"
+def config_defaults():
+    defaults = {}
+
+    defaults['HOST'] = "localhost.mycube.com"
+
+    try:
+        import socket
+        host = socket.gethostbyaddr(defaults['HOST'])
+    except Exception, e:
+        defaults['HOST'] = '127.0.0.1'
+
+    try:
+        defaults['PORT'] = str(int(sys.argv[1]))
+    except:
+        defaults['PORT'] = "8000"
+
+    defaults['APP_DIR'] = os.path.dirname(__file__)
+    if sys.platform == "win32":
+        import winhelpers
+        folders = winhelpers.get_user_folders()
+        defaults['APP_DIR'] = os.path.join(folders['AppData'], 'MyCube Vault')
+        defaults['CONFIG_DIR'] = os.path.join(folders['AppData'], 'MyCube Vault')
+        defaults['BACKUP_DIR'] = os.path.join(defaults['CONFIG_DIR'], 'data')
+    elif sys.platform == 'darwin':
+        defaults['CONFIG_DIR'] = "%s/Library/Application Support/MyCube Vault" % os.environ['HOME']
+        defaults['BACKUP_DIR'] = os.path.join(defaults['CONFIG_DIR'], 'data')
+        #APP_DIR = "%s/Library/Application Support/MyCube Vault" % os.environ['HOME']
+        defaults['APP_DIR'] = os.getcwd()
+    else:
+        defaults['APP_DIR'] = os.path.dirname(os.path.realpath(__file__)) 
+        defaults['CONFIG_DIR'] = os.path.join(os.path.expanduser('~'), '.mycube')
+        defaults['BACKUP_DIR'] = os.path.join(defaults['CONFIG_DIR'], 'data')
+
+    #BACKUP_DIR = os.getcwd()
+    if USBMODE:
+        defaults['APP_DIR'] = os.getcwd()
+        defaults['CONFIG_DIR'] = os.path.join(defaults['APP_DIR'], os.path.pardir)
+        defaults['BACKUP_DIR'] = os.path.join(defaults['CONFIG_DIR'], 'Data')
+
+    defaults['GOOGLE_OAUTH_CONSUMER_KEY'] = "opensocialgraph.appspot.com"
+    defaults['GOOGLE_OAUTH_CONSUMER_SECRET'] = "ZwKQP4ILJ5G6witkPvCz7Jzx"
+
+    defaults['BRIDGE'] = "https://opensocialgraph.appspot.com/backup_bridge/facebook/authorize"
+    return defaults
+
+
+config_parser = ConfigParser.ConfigParser(config_defaults())
+
+section = 'MyCube Vault'
+
+if not config_parser.has_section(section):
+    config_parser.add_section(section)
+
+CONFIG_DIR = config_parser.get(section, 'config_dir')
+CONFIG_FILE  = os.path.join(CONFIG_DIR, "mycubevault.cfg")
 
 try:
-    import socket
-    host = socket.gethostbyaddr(HOST)
-except Exception, e:
-    print "%r" % e
-    HOST = '127.0.0.1'
-
-try:
-    PORT = int(sys.argv[1])
-except:
-    PORT = 8000
-
-APP_DIR = os.path.dirname(__file__)
-if sys.platform == "win32":
-    import winhelpers
-    folders = winhelpers.get_user_folders()
-    APP_DIR = os.path.join(folders['AppData'], 'MyCube Vault')
-    BACKUP_DIR = os.path.join(folders['AppData'], 'MyCube Vault')
-elif sys.platform == 'darwin':
-    BACKUP_DIR = "%s/Library/Application Support/MyCube Vault" % os.environ['HOME']
-    #APP_DIR = "%s/Library/Application Support/MyCube Vault" % os.environ['HOME']
-    APP_DIR = os.getcwd()
-else:
-    APP_DIR = os.path.dirname(os.path.realpath(__file__)) 
-    BACKUP_DIR = os.path.join(os.path.expanduser('~'), '.mycube')
-
-#BACKUP_DIR = os.getcwd()
-if USBMODE:
-    APP_DIR = os.getcwd()
-    BACKUP_DIR = os.path.join(APP_DIR, os.path.pardir, 'Data')
-
-print "APP_DIR", APP_DIR
-config_parser = ConfigParser.ConfigParser()
-BRIDGE = "https://opensocialgraph.appspot.com/backup_bridge/facebook/authorize"
-
-try:
-    config_parser.readfp(open(os.path.join(APP_DIR, "config.ini")))
-    BRIDGE = config_parser.get("MyCube Vault", "bridge")
+    config_parser.readfp(open(CONFIG_FILE))
 except:
     pass
 
+HOST = config_parser.get(section, 'host')
+PORT = config_parser.getint(section, 'port')
+APP_DIR = config_parser.get(section, 'app_dir')
+BACKUP_DIR = config_parser.get(section, 'backup_dir')
+
+BRIDGE = config_parser.get(section, "bridge")
+GOOGLE_OAUTH_CONSUMER_KEY = config_parser.get(section, 'google_oauth_consumer_key')
+GOOGLE_OAUTH_CONSUMER_SECRET = config_parser.get(section, 'google_oauth_consumer_secret')
 DEBUG = False
 SECRET_KEY = "asdfasdfasfsadf"
-SQLALCHEMY_DATABASE_URI = "sqlite:////%s/mc.db" % os.path.sep.join(BACKUP_DIR.split(os.path.sep)[1:])
+SQLALCHEMY_DATABASE_URI = "sqlite:////%s/mc.db" % os.path.sep.join(CONFIG_DIR.split(os.path.sep)[1:])
 SQLALCHEMY_ECHO = False
 KRON = kronos.ThreadedScheduler()
 KRON.tasks = {}
-
-GOOGLE_OAUTH_CONSUMER_KEY = "opensocialgraph.appspot.com"
-GOOGLE_OAUTH_CONSUMER_SECRET = "ZwKQP4ILJ5G6witkPvCz7Jzx"
 
 def create_app(config=None):
     app = Flask("myvaultapp")
@@ -90,14 +111,26 @@ def create_app(config=None):
     if config is not None:
         app.config.from_object(config)
 
+    app_dir = app.config['APP_DIR']
+    config_dir = app.config['CONFIG_DIR']
+    backup_dir = app.config['BACKUP_DIR']
     try:
-        os.makedirs(BACKUP_DIR, mode=0766)
-        os.makedirs(APP_DIR, mode=0766)
+        os.makedirs(config_dir, mode=0766)
+    except OSError, e:
+        pass
+
+    try:
+        os.makedirs(backup_dir, mode=0766)
+    except OSError, e:
+        pass
+
+    try:
+        os.makedirs(app_dir, mode=0766)
     except OSError, e:
         pass
 
     for d in ["applications"]:
-        path = os.path.join(APP_DIR, d)
+        path = os.path.join(app_dir, d)
         sys.path.insert(0,path)
 
 
@@ -106,8 +139,7 @@ def create_app(config=None):
 
     logger = app.logger
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    print os.path.join(BACKUP_DIR, 'myvault.log')
-    rh = logging.handlers.RotatingFileHandler(os.path.join(BACKUP_DIR, 'myvault.log'))
+    rh = logging.handlers.RotatingFileHandler(os.path.join(config_dir, 'myvault.log'))
     rh.setLevel(logging.DEBUG)
     rh.setFormatter(formatter)
 
@@ -120,14 +152,11 @@ def create_app(config=None):
         sh.setFormatter(formatter)
         logger.addHandler(sh)
 
-
     db.init_app(app)
     if sys.platform == 'darwin':
-        applications_path = os.path.join(APP_DIR,"applications")
+        applications_path = os.path.join(app_dir,"applications")
     else:
         applications_path = get_path("applications") 
-    
-    print "applications path", applications_path
 
     sys.path.insert(0, applications_path)
     
@@ -137,18 +166,11 @@ def create_app(config=None):
             if name == "base":
                 mount = ""
                 app.register_module(view.module, url_prefix="/%s" % mount)
-            #if name == 'picasaweb_app':
-            #    continue
             app.register_module(view.module, url_prefix="/%s" % name)
         except ValueError, e:
             pass
     
     create_default_views(app)
-    try:
-        os.makedirs(BACKUP_DIR, mode=0766)
-        os.makedirs(APP_DIR, mode=0766)
-    except OSError:
-        pass
 
     return app
 

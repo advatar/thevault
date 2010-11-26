@@ -7,8 +7,9 @@
 <META HTTP-EQUIV="Expires" CONTENT="-1">
 <title>MYCUBE</title>
 <link rel="shortcut icon" type="image/vnd.microsoft.icon"  href="{{ url_for('.static', filename='images/favicon.ico') }}" />
-<link rel="stylesheet" href="{{ url_for('.static', filename='css/mycubevault.css') }}" />
-<link rel="stylesheet" href="{{ url_for('.static', filename='css/colorbox.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='css/mycubevault.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='css/colorbox.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='css/smoothness/jquery-ui-1.8.6.custom.css') }}"/>
 <style type="text/css">
 #cboxOverlay {
   background: none repeat scroll 0 0 #333;
@@ -22,6 +23,7 @@
 </style>
 <script type="text/javascript" src="{{ url_for('.static', filename='js/DD_roundies_0.0.2a.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('.static', filename='js/jquery-min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('.static', filename='js/jquery-ui-1.8.6.custom.min.js') }}"></script>
 </head>
 <body>
 <div id="page">
@@ -113,6 +115,10 @@
         }
         return path;
       };
+
+      if(get_path() == "/restarting"){
+        return;
+      }
       if(data == null || data.status == 'offline'){
         jQuery('#connection_status').addClass('offline').html('You are not currently connected to the internet.');
         if(window.location.hostname != '127.0.0.1'){

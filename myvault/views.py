@@ -9,10 +9,11 @@ import os
 import time
 import urllib2
 import re
+from distutils import dir_util
 import simplejson as json
 import time, datetime
 from flask import url_for, jsonify, render_template, current_app, g,\
-        send_file
+        send_file, request
 from jinja2 import evalcontextfilter, Markup, escape
 from werkzeug import import_string
 from myvault.helpers import get_logger, utc_to_local, stringify_unicode_keys,\
@@ -22,7 +23,7 @@ from myvault.models import db, Archive, BackupProgress, UserPreference
 from myvault.api import get_backup_progress, get_settings, get_recent_archive, \
         save_settings, run_at_startup
 from myvault.forms import AppSettingsForm
-from settings import HOST, PORT, KRON
+from settings import HOST, PORT, KRON, BACKUP_DIR, CONFIG_DIR
 
 _paragraph_re = re.compile(r'(?:\r\n|\r|\n){2,}')
 
@@ -30,8 +31,19 @@ logger = get_logger()
 
 def default_views(app):
 
+    def make_response(payload):
+        """
+        Creates a no-cache response. Handy for AJAX calls.
+        """
+        response = app.make_response(payload)
+        response.headers['cache-control'] = 'no-cache'
+        return response
+
     @app.context_processor
     def enabled_services():
+        """
+        Returns a list of services enabled.
+        """
         modules = app.modules
         services = {}
 
@@ -50,7 +62,6 @@ def default_views(app):
     def custom_strftime(t, format):
         return time.strftime(format, t)
 
-
     @app.template_filter('strptime')
     def custom_strptime(t, format):
         return time.strptime(t, format)
@@ -67,6 +78,9 @@ def default_views(app):
     @app.template_filter()
     @evalcontextfilter
     def nl2br(eval_ctx, value):
+        """
+        Convert \n to <br>
+        """
         result = u'\n\n'.join(u'%s' % p.replace('\n', '<br>\n') \
                 for p in _paragraph_re.split(value))
         if eval_ctx.autoescape:
@@ -75,10 +89,16 @@ def default_views(app):
 
     @app.route("/")
     def index():
-        return render_template("index.html")
+        preference = get_settings('global')
+        backup_dir = preference.get('backup_dir', BACKUP_DIR)
+        return render_template("index.html", backup_dir=backup_dir)
 
     @app.route("/load_schedules")
     def load_schedules():
+        """
+        Load schedules from db to kronos scheduler.
+        Starts the backup routine for an app module if we missed a schedule.
+        """
         logger.debug("in load_schedules")
         modules = app.modules
 
@@ -136,6 +156,9 @@ def default_views(app):
 
     @app.route("/reload_schedules")
     def reload_schedules():
+        """
+        Reload all schedules
+        """
         logger.debug("in reload schedules")        
         modules = app.modules
 
@@ -152,11 +175,9 @@ def default_views(app):
 
     @app.route("/connection_status")
     def connection_status():
-        def make_response(payload):
-            response = app.make_response(payload)
-            response.headers['cache-control'] = 'no-cache'
-            return response
-
+        """
+        Returns internet connection status.
+        """
         status = 'offline'
         if is_online():
             status = 'online'
@@ -165,10 +186,6 @@ def default_views(app):
     
     @app.route('/update_status')
     def update_status():
-        def make_response(payload):
-            response = app.make_response(payload)
-            response.headers['cache-control'] = 'no-cache'
-            return response
         status = 'outdated'
 
         return make_response(jsonify({'status': status}))
@@ -179,36 +196,144 @@ def default_views(app):
 
     @app.route("/backup_progress/<app_name>")
     def backup_progress(app_name):
-        def make_response(payload):
-            response = app.make_response(jsonify(payload))
-            response.headers['cache-control'] = 'no-cache'
-            return response
-
+        """
+        Return from db the progress of the backup routine.
+        """
         progress = get_backup_progress(app_name)
 
         if progress:
             if not progress.ended_at:
-                return make_response({'status': True, 'progress': progress.progress})
+                return make_response(jsonify({'status': True, 'progress': progress.progress}))
 
-        return make_response({'status': False, 'progress': 0})
+        return make_response(jsonify({'status': False, 'progress': 0}))
 
     @app.route('/settings')
     def app_settings():
+        """
+        Show the application settings page.
+        """
         preference = get_settings('global')
+        if not preference.has_key('backup_dir') or not preference['backup_dir']:
+            preference['backup_dir'] = BACKUP_DIR
         form = AppSettingsForm(**preference)
         return render_template('settings.html', form=form)
 
     @app.route('/settings', methods=['POST'])
     def do_app_settings():
+        """
+        Update application settings
+        """
         from flask import request, flash, redirect
 
         preference = get_settings('global')
         new_preference = AppSettingsForm(request.form)
         preference['run_at_startup'] = new_preference.run_at_startup.data
+        
+        backup_dir = new_preference.backup_dir.data
+
+        home_dir = get_home_dir()
+        if not backup_dir.startswith(home_dir):
+            flash("Invalid Backup Directory path", "error")
+            return redirect(url_for('.app_settings'))
+
+        preference['backup_dir'] = backup_dir
+        
+        need_restart = False
+        if not is_same_path(BACKUP_DIR, backup_dir):
+            move_backup_dir(backup_dir)
+            need_restart = True
+
         save_settings('global', preference)
         run_at_startup(preference['run_at_startup'])
-
+        save_config('backup_dir', backup_dir)
         flash('Application settings updated!')
+        if need_restart:
+            return redirect(url_for('.restarting'))
         return redirect(url_for('.app_settings'))
+
+    @app.route('/restarting')
+    def restarting():
+        """
+        Show a restarting page while waiting for the server to restart.
+        """
+        return render_template('restarting.html')
+
+    from ConfigParser import ConfigParser
+
+    def save_config(k, v):
+        config_parser = ConfigParser()
+        config_path = os.path.join(CONFIG_DIR, "mycubevault.cfg")
+        try:
+            config_parser.readfp(open(config_path))
+        except IOError, e:
+            pass
+
+        section = 'MyCube Vault'
+        if not config_parser.has_section(section):
+            config_parser.add_section(section)
+
+        config_parser.set(section, k, v)
+        config_parser.write(open(config_path, "wb"))
+
+
+    def move_backup_dir(path):
+        """
+        Copy the backup dir to a given path. Removes the old path.
+        """
+        dir_util.copy_tree(BACKUP_DIR, path)
+        #dir_util.remove_tree(BACKUP_DIR)
+
+    def get_dirs(path):
+        """
+        Return the a list of directories found in path.
+        """
+        return [("%s/%s" % (path,d)) for d in os.listdir(path) if os.path.isdir("%s/%s" % (path, d,))]
+
+    def get_home_dir():
+        """
+        Get user's home dir.
+        """
+        if os.environ.has_key('HOME'):
+            return os.environ['HOME']
+        elif os.environ.has_key('HOMEPATH'):
+            return os.environ['HOMEPATH']
+        else:
+            return os.path.expanduser('~')
+
+    def is_same_path(path1, path2):
+        """
+        Compare two paths ignoring trailing space and /.
+        """
+        path1 = path1.split(os.path.sep)
+        path2 = path2.split(os.path.sep)
+
+        return "".join(path1).strip() == "".join(path2).strip()
+
+    @app.route('/backup_dir_suggest')
+    def backup_dir_suggest():
+        """
+        Returns a list of path suggestions based on the prefix submitted.
+        """
+        term = request.values.get('term', None)
+
+        splits = term.split(os.path.sep)
+
+        path = os.path.sep.join(splits[:-1])
+        selected = splits[-1:]
+        
+        home_dir = get_home_dir()
+
+        # for now limit user in their home dir
+        # assume we are in installed mode deal with USBMODE later.
+        if not path.startswith(home_dir):
+            dirs = get_dirs(home_dir)
+            search_term = home_dir
+        else:
+            dirs = get_dirs(path)
+            search_term = term
+
+        dirs.sort()
+        paths = [{'id': d, 'label': d, 'value': d} for d in dirs if d.startswith(search_term)]
+        return make_response(json.dumps(paths))
 
 # vim: set sts=4 sw=4 ts=4:

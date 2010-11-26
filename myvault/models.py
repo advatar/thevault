@@ -1,11 +1,5 @@
 from myvault.database import db
 
-class ModuleSchema(db.Model):
-    __tablename__ = "module_schema"
-    
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50))
-
 class ArchiveMixin(object):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer)
@@ -26,13 +20,6 @@ class Archive(db.Model):
     module = db.Column(db.String(50))
     filename = db.Column(db.String(50))
     archived_at = db.Column(db.DateTime)
-
-class Token(db.Model):
-    __tablename__ = "tokens"
-
-    id = db.Column(db.Integer, primary_key=True)
-    service = db.Column(db.String(50))
-    data = db.Column(db.Text())
 
 class UserPreference(db.Model):
     __tablename__ = "user_preferences"

@@ -11,6 +11,6 @@ from flaskext.wtf import Form, Required, TextField, BooleanField,\
 
 class AppSettingsForm(Form):
     run_at_startup = BooleanField('Run at Startup')
-    #backup_dir = TextField("Backup Data Dir")
+    backup_dir = TextField("Backup Data Dir")
 
 # vim: set et sts=4 ts=4 sw=4:

@@ -36,6 +36,18 @@ def stop_service():
     server.stop()
     return "service stop"
 
+@app.route('/restart')
+def restart_service():
+    server.stop()
+    KRON.stop()
+    app = create_app()
+    dispatcher = wsgiserver.WSGIPathInfoDispatcher({'/': app})
+    server = wsgiserver.CherryPyWSGIServer((HOST, PORT), dispatcher)
+    try:
+        server.start()
+    except KeyboardInterrupt:
+        server.stop()
+
 def stop_server(signum, frame):
     KRON.stop()
     server.stop()

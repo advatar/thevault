@@ -135,9 +135,11 @@ def register():
         return render_template('picasaweb_app/register.html')
     token = oauth.OAuthToken.from_string(urllib.unquote(access_token))
 
+    logger.debug('access_token: %s || secret: %s', token.key, token.secret)
+
     auth = PicasaWeb(GOOGLE_OAUTH_CONSUMER_KEY, GOOGLE_OAUTH_CONSUMER_SECRET,
             str(token.key), str(token.secret))
-
+    
     try:
         profile = auth.get_profile()
     except Exception, e:
@@ -244,3 +246,4 @@ def album_photo_path(album_id, photo_id, size):
 
     return send_file(image_file)
 
+# vim: set et sts=4 ts=4 sw=4
