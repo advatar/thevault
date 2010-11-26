@@ -196,6 +196,7 @@ def schedule_from_form_time(value):
     t = time.strptime(s, "%I:%M %p")
     return {'timeofday': time.strftime("%H%M", t)}
 
+
 MACOSX_LAUNCH_AGENT_PLIST = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -211,7 +212,11 @@ MACOSX_LAUNCH_AGENT_PLIST = """<?xml version="1.0" encoding="UTF-8"?>
   </dict>
 </plist>
 """
+
 def run_at_startup(value):
+    """
+    Add/remove Startup Menu link (windows) or LaunchAgent Plist (MacOSX).
+    """
     if sys.platform == "win32":
         try:
             pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)

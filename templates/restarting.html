@@ -4,16 +4,32 @@
 <h2>Restarting... Please wait...</h2>
 <script type="text/javascript">
   jQuery(document).ready(function(){
-    jQuery.get("{{ url_for('.restart_service') }}");
-    jQuery.Updater("{{ url_for('.connection_status') }}", {
-      method: 'GET',
-      data: '',
-      type: 'json',
-      interval: 10000
-    },
-    function(data){
-      if(data){
-        window.location.href = "{{ url_for('.app_settings') }}";
+    jQuery.get("{{ url_for('.restart_service') }}", function(data){
+      jQuery.Updater("{{ url_for('.connection_status') }}", {
+          method: 'GET',
+          data: '',
+          type: 'json',
+          interval: 10000
+      },
+      function(data){
+        if(data){
+          window.location.href = "{{ url_for('.app_settings') }}";
+        }
+      });
+    });
+    jQuery('h2').ajaxError(function(e, xhr, settings, exceptions){
+      if(settings.url == 'restart'){
+        jQuery.Updater("{{ url_for('.connection_status') }}", {
+          method: 'GET',
+          data: '',
+          type: 'json',
+          interval: 10000
+        },
+        function(data){
+          if(data){
+            window.location.href = "{{ url_for('.app_settings') }}";
+          }
+        });
       }
     });
   });

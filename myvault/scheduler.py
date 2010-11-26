@@ -33,7 +33,6 @@ def reload_schedules():
 
 def cancel_schedule(taskname):
     if taskname in KRON.tasks:
-        logger.debug("canceling %s", taskname)
         try:
             KRON.cancel(KRON.tasks[taskname])
             del KRON.tasks[taskname]
@@ -45,12 +44,9 @@ def schedule_runner(job, app_name):
         job(app_name)
 
 def add_daily_schedule(taskname, schedule, callback):
-    logger.debug("adding daily schedule %s | %r | %r", taskname, schedule,
-            callback)
     cancel_schedule(taskname)
-    logger.debug("old schedule canceled")
-    timeofday = time.strptime(schedule['timeofday'], "%H%M")
     
+    timeofday = time.strptime(schedule['timeofday'], "%H%M")
     task = KRON.add_daytime_task(
             schedule_runner, # method to run
             taskname, # taskname

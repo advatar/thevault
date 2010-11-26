@@ -44,4 +44,11 @@ class BackupProgress(db.Model):
     started_at = db.Column(db.DateTime)
     ended_at = db.Column(db.DateTime)
 
+class AppMessage(db.Model):
+    __tablename__ = "app_messages"
+
+    id = db.Column(db.Integer, primary_key=True)
+    topic = db.Column(db.String(50))
+    message = db.Column(db.Text())
+
 # vim: set sts=4 ts=4 sw=4:

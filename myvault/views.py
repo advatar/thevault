@@ -10,6 +10,7 @@ import time
 import urllib2
 import re
 from distutils import dir_util
+from ConfigParser import ConfigParser
 import simplejson as json
 import time, datetime
 from flask import url_for, jsonify, render_template, current_app, g,\
@@ -19,7 +20,7 @@ from werkzeug import import_string
 from myvault.helpers import get_logger, utc_to_local, stringify_unicode_keys,\
         backup_is_on_schedule, is_online
 from myvault.scheduler import add_schedule
-from myvault.models import db, Archive, BackupProgress, UserPreference
+from myvault.models import db, Archive, BackupProgress, UserPreference, AppMessage
 from myvault.api import get_backup_progress, get_settings, get_recent_archive, \
         save_settings, run_at_startup
 from myvault.forms import AppSettingsForm
@@ -130,7 +131,7 @@ def default_views(app):
 
             if not is_online():
                 logger.debug("we are offline. skipping backup on boot")
-                return "schedule loaded"
+                return make_response("schedule loaded")
 
             archive = get_recent_archive(app_name) 
             if archive:
@@ -151,7 +152,7 @@ def default_views(app):
                 logger.debug("no backup found. starting backup")
                 KRON.add_single_task(callback, 'backup_%s' % app_name, 1, 'threaded', [app_name], None)
 
-        return "schedule loaded"
+        return make_response("schedule loaded")
 
 
     @app.route("/reload_schedules")
@@ -171,7 +172,7 @@ def default_views(app):
         
         KRON.add_single_task(load_sked, 'load_sked', 3, 'threaded', None, None)
 
-        return "rescheduled"
+        return make_response("rescheduled")
 
     @app.route("/connection_status")
     def connection_status():
@@ -232,6 +233,8 @@ def default_views(app):
         backup_dir = new_preference.backup_dir.data
 
         home_dir = get_home_dir()
+        logger.debug("home dir is: %r", home_dir)
+        logger.debug("backup dir is: %r", backup_dir)
         if not backup_dir.startswith(home_dir):
             flash("Invalid Backup Directory path", "error")
             return redirect(url_for('.app_settings'))
@@ -258,9 +261,12 @@ def default_views(app):
         """
         return render_template('restarting.html')
 
-    from ConfigParser import ConfigParser
 
-    def save_config(k, v):
+    def save_config(name, value):
+        """
+        Update the config file mycubevault.cfg.
+        Server restart needed see new values.
+        """
         config_parser = ConfigParser()
         config_path = os.path.join(CONFIG_DIR, "mycubevault.cfg")
         try:
@@ -272,7 +278,7 @@ def default_views(app):
         if not config_parser.has_section(section):
             config_parser.add_section(section)
 
-        config_parser.set(section, k, v)
+        config_parser.set(section, name, value)
         config_parser.write(open(config_path, "wb"))
 
 
@@ -281,24 +287,24 @@ def default_views(app):
         Copy the backup dir to a given path. Removes the old path.
         """
         dir_util.copy_tree(BACKUP_DIR, path)
-        #dir_util.remove_tree(BACKUP_DIR)
+        dir_util.remove_tree(BACKUP_DIR)
 
     def get_dirs(path):
         """
         Return the a list of directories found in path.
         """
-        return [("%s/%s" % (path,d)) for d in os.listdir(path) if os.path.isdir("%s/%s" % (path, d,))]
+        return [os.path.realpath(os.path.join(path,d)) for d in os.listdir(path) if os.path.isdir("%s/%s" % (path, d,))]
 
     def get_home_dir():
         """
         Get user's home dir.
         """
         if os.environ.has_key('HOME'):
-            return os.environ['HOME']
+            return os.path.realpath(os.environ['HOME'])
         elif os.environ.has_key('HOMEPATH'):
-            return os.environ['HOMEPATH']
+            return os.path.realpath(os.environ['HOMEPATH'])
         else:
-            return os.path.expanduser('~')
+            return os.path.realpath(os.path.expanduser('~'))
 
     def is_same_path(path1, path2):
         """
@@ -315,12 +321,9 @@ def default_views(app):
         Returns a list of path suggestions based on the prefix submitted.
         """
         term = request.values.get('term', None)
-
         splits = term.split(os.path.sep)
-
         path = os.path.sep.join(splits[:-1])
         selected = splits[-1:]
-        
         home_dir = get_home_dir()
 
         # for now limit user in their home dir
@@ -333,7 +336,26 @@ def default_views(app):
             search_term = term
 
         dirs.sort()
-        paths = [{'id': d, 'label': d, 'value': d} for d in dirs if d.startswith(search_term)]
+        paths = [{'id': d, 'label': d, 'value': d} for d in dirs if d.startswith(str(search_term))]
         return make_response(json.dumps(paths))
+
+    @app.route("/check_restart")
+    def check_restart():
+        """
+        Check if there's a server restart job pending.
+        Used by the launcher.
+        """
+        app_message = AppMessage.query and \
+                AppMessage.query\
+                    .filter_by(topic='server_restart')\
+                    .order_by('id ASC')\
+                    .first()
+
+        res = "false"
+        if app_message:
+            res = "true"
+            db.session.delete(app_message)
+            db.session.commit()
+        return make_response(res)
 
 # vim: set sts=4 sw=4 ts=4:
