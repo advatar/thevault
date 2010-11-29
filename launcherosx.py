@@ -21,6 +21,7 @@ import urllib2
 import re
 from multiprocessing import freeze_support
 
+import objc
 from Foundation import *
 from AppKit import NSApp, NSApplication,NSGetAlertPanel,NSReleaseAlertPanel
 from PyObjCTools import AppHelper
@@ -47,6 +48,28 @@ def startService_(self, notification):
         self.disabled_menuitems.remove('Open Dashboard')
         
         self.disabled_menuitems.append('Start')
+
+def restartService_(self, notification):
+    """
+    Restart the server.
+    """
+    if not hasattr(self, 'server_pid') or self.server_pid is None:
+        self.server_process = subprocess.Popen([sys.executable, 'server.py', self.server_port])
+        self.server_pid = self.server_process.pid
+    else:
+        try:
+            try:
+                urllib2.urlopen("http://%s:%s/stop" % (HOST, self.server_port), timeout=2)
+            except Exception, e:
+                pass
+            self.server_process.wait()
+            self.server_pid = None
+        except IOError, e:
+            pass
+
+        self.server_process = subprocess.Popen([sys.executable, 'server.py', self.server_port])
+        self.server_pid = self.server_process.pid
+
 
 def stopService_(self, notification):
     """
@@ -151,6 +174,17 @@ def doTest():
 
 if __name__ == "__main__":
     freeze_support()
+    def restartCallback_(self, notification):
+        try:
+            data = urllib2.urlopen("http://%s:%s/check_restart" % (HOST, self.server_port), timeout=2).read()
+            if data == "true":
+                self.restartService_("")
+        except Exception, e:
+            pass
+
+    objc.classAddMethod(systrayosx.Backup, "restartCallback_", restartCallback_)
+    objc.classAddMethod(systrayosx.Backup, "restartService_", restartService_)
+
     app = NSApplication.sharedApplication()
     menus = [
        (('Open Dashboard', 'openDashboard:', ''), openDashboard_),
@@ -164,8 +198,14 @@ if __name__ == "__main__":
     delegate.disabled_menuitems = ['Open Dashboard']
     delegate.server_port = str(pscan())
     delegate.startService_("")
+    
+    NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+        3, delegate, "restartCallback_", None, YES)
+
     time.sleep(5)
     delegate.openDashboard_("")
     app.setDelegate_(delegate)
     AppHelper.runEventLoop()
 
+
+# vim: set et sts=4 ts=4 sw=4:

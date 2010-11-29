@@ -82,7 +82,7 @@ if sys.platform == 'darwin':
         target = sys.argv[1]
 
     if target not in ('source', 'binary', 'installer', 'app'):
-        print 'Usage: package.py app'
+        print 'Usage: setup.py app'
         exit(1)
 
     # Derive release name from path

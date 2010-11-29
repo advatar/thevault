@@ -54,6 +54,8 @@ def restart_service():
     app_message = AppMessage(topic='server_restart', message='restart')
     db.session.add(app_message)
     db.session.commit()
+    import time
+    time.sleep(20)
     return make_response("restarting")
 
 def stop_server(signum, frame):

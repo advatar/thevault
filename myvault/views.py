@@ -345,6 +345,7 @@ def default_views(app):
         Check if there's a server restart job pending.
         Used by the launcher.
         """
+        logger.debug("in check_restart")
         app_message = AppMessage.query and \
                 AppMessage.query\
                     .filter_by(topic='server_restart')\

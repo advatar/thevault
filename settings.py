@@ -17,6 +17,7 @@ import ConfigParser
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
 import kronos
 
+VERSION = "0.1.1" # major.minor.patch
 USBMODE = False
 
 def get_path(target):
