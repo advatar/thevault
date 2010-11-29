@@ -31,7 +31,7 @@ def start_service(self):
     port = str(pscan())
     if not hasattr(self, 'server_pid') or self.server_pid is None:
         start_server(self, port) 
-
+    
     # let's open the browser
     time.sleep(2)
     webbrowser.open("http://%s:%s" % (HOST, self.server_port))

@@ -20,7 +20,7 @@ import webbrowser
 from multiprocessing import freeze_support
 from systrayubuntu import SysTray
 from myvault.helpers import pscan, is_online
-from settings import HOST as DOMAIN
+from settings import HOST as DOMAIN, need_update
 
 def get_path(target):
     path = os.path.dirname(os.path.realpath(__name__))
@@ -35,7 +35,6 @@ def start_service(self, widget, data=None):
     Look for an open port then start the webservice on that port.
     """
     port = str(pscan())
-    print "%r" % sys.executable
     if not hasattr(self, 'server_pid') or self.server_pid is None:
         if re.search(r"python(.exe)?$", sys.executable):
             self.server_process = subprocess.Popen([sys.executable, 'server.py', port])
@@ -177,10 +176,46 @@ def reset_password(self, widget, data=None):
             webbrowser.open("http://%s:%s/logout" % (DOMAIN, self.server_port))
 
 
+def update_dialog(self, widget, data=None):
+    message = """There is a new version available.
+    Do you want to download?"""
+
+    dialog = gtk.MessageDialog(
+            None,
+            gtk.DIALOG_MODAL,
+            gtk.MESSAGE_QUESTION,
+            gtk.BUTTONS_YES_NO,
+            message)
+    response = dialog.run()
+    dialog.destroy()
+
+    if response == gtk.RESPONSE_YES:
+        webbrowser.open("http://sourceforge.net/projects/themycubevault/files/MyCubeVault.exe/download")
+
+def no_update_dialog(self, widget, data=None):
+    message = "You are currently using the latest version."
+    dialog = gtk.MessageDialog(
+            None,
+            gtk.DIALOG_MODAL,
+            gtk.MESSAGE_INFO,
+            gtk.BUTTONS_OK,
+            message)
+
+    dialog.run()
+    dialog.destroy()
+
+
+def check_updates(self, widget, data=None):
+    if need_update():
+        update_dialog(self, widget)
+    else:
+        no_update_dialog(self, widget)
+
 
 def main():
     menu_options = (
             ('Open Dashboard', open_dashboard),
+            ('Check for updates', check_updates),
             #('Start Service', start_service),
             #('Stop Service', stop_service),
             #('Reset Password', reset_password),
@@ -210,7 +245,17 @@ def main():
                     pass
         return True
 
-    #gobject.timeout_add(5000, connection_status, st)
+   
+    def callback(st):
+        try:
+            data = urllib2.urlopen("http://%s:%s/check_restart" % (st.server_host, st.server_port), timeout=2).read()
+            if data == "true":
+                restart_service(st, None)
+        except Exception, e:
+            pass
+        return True
+
+    gobject.timeout_add(3000, callback, st)
     st.start()
     
 if __name__ == "__main__":

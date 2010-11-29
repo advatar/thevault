@@ -210,7 +210,7 @@ else:
             version="0.1",
             options={'build_exe': {
                 'include_files': ['templates', 'static', 'icons',
-                    'applications', 'config.ini', 'license.txt'],
+                    'applications', 'config.ini', 'license.txt', 'scripts'],
                 'packages': ['sqlalchemy','werkzeug','flask','jinja2','wtforms',
                     'gdata', 'atom'],},},)
 

@@ -17,7 +17,7 @@ import flaskext.sqlalchemy
 
 import cherrypy
 from cherrypy import wsgiserver
-from settings import create_app, create_db, HOST, PORT, KRON
+from settings import create_app, create_db, update_version, HOST, PORT, KRON
 from myvault.database import db
 from myvault.models import AppMessage
 import config
@@ -64,6 +64,7 @@ def stop_server(signum, frame):
 
 def start_server():
     create_db(app, db)
+    update_version(app, db)
     KRON.start()
 
     try:

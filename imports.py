@@ -6,5 +6,5 @@ import kronos, werkzeug, werkzeug.local, jinja2,\
         flaskext.sqlalchemy,\
         simplejson, flask.templating,\
         wtforms, facebook, oauth, sqlalchemy, sqlalchemy.dialects.sqlite,\
-        google_auth, osg_oauth #, Crypto.PublicKey, Crypto.PublicKey.RSA
+        google_auth, osg_oauth #, Crypto, Crypto.PublicKey, Crypto.PublicKey.RSA
 

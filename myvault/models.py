@@ -51,4 +51,11 @@ class AppMessage(db.Model):
     topic = db.Column(db.String(50))
     message = db.Column(db.Text())
 
+class AppVersion(db.Model):
+    __tablename__ = "app_versions"
+
+    id = db.Column(db.Integer, primary_key=True)
+    version = db.Column(db.String(50))
+
+
 # vim: set sts=4 ts=4 sw=4:

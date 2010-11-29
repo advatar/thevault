@@ -7,6 +7,7 @@ http://mycube.com/vault/license
 """
 
 import os, sys
+import urllib2
 from flask import Flask
 import cherrypy
 from myvault.database import db
@@ -184,4 +185,42 @@ def create_db(app, db):
 def create_default_views(app):
     from myvault.views import default_views
     default_views(app)
- 
+
+def need_update():
+    #update_url = "http://sourceforge.net/projects/themycubevault/files/current.txt/download"
+    update_url = "http://localhost:9000/current.txt"
+    try:
+        latest_version = urllib2.urlopen(update_url, timeout=5).read()
+
+        if latest_version.strip() > VERSION:
+            return True
+    except Exception, e:
+        #print "failed downloading version file. %r" % e
+        pass
+
+    return False
+
+def update_version(app, db):
+    logger = app.logger
+    ctx = app.test_request_context()
+    ctx.push()
+    from myvault.models import AppVersion
+
+
+    current_installed = AppVersion.query and \
+            AppVersion.query\
+                .order_by('version DESC')\
+                .first()
+    
+    installed_version = current_installed.version if current_installed else "0"
+    logger.debug("installed_version: %r", installed_version)
+
+
+    if installed_version < VERSION:
+        new_version = AppVersion(version=VERSION)
+        update_script = import_string("scripts.version_%s" % (VERSION.replace(".", "_")))
+        update_script.update(app, db)
+        db.session.add(new_version)
+        db.session.commit()
+
+    ctx.pop()
