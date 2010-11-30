@@ -166,7 +166,7 @@ if target == 'app':
     #copy built app to mounted sparseimage
     #os.system("cp -r dist/MyVault.app %s>/dev/null" % volume)
     os.system("cp -r dist/MyCube\ Vault.app %s >/dev/null" % volume2)
-    os.system("cp license %s >/dev/null" % volume2)
+    os.system("cp license.txt %s >/dev/null" % volume2)
 
     #cleanup src dir
     os.system("rm -rf dist/>/dev/null")
