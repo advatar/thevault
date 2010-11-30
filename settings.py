@@ -18,7 +18,7 @@ import ConfigParser
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
 import kronos
 
-VERSION = "0.1.1" # major.minor.patch
+VERSION = "0.1.2" # major.minor.patch
 USBMODE = False
 
 def get_path(target):
@@ -188,7 +188,7 @@ def create_default_views(app):
 
 def need_update():
     #update_url = "http://sourceforge.net/projects/themycubevault/files/current.txt/download"
-    update_url = "http://localhost:9000/current.txt"
+    update_url = "http://192.168.170.141:9000/current.txt"
     try:
         latest_version = urllib2.urlopen(update_url, timeout=5).read()
 
@@ -200,12 +200,16 @@ def need_update():
 
     return False
 
+def uniq(seq):
+    seen = set()
+    return [x for x in seq if x not in seen and not seen.add(x)]
+
 def update_version(app, db):
+
     logger = app.logger
     ctx = app.test_request_context()
     ctx.push()
     from myvault.models import AppVersion
-
 
     current_installed = AppVersion.query and \
             AppVersion.query\
@@ -213,14 +217,40 @@ def update_version(app, db):
                 .first()
     
     installed_version = current_installed.version if current_installed else "0"
-    logger.debug("installed_version: %r", installed_version)
 
+    scripts = []
+    for script in os.listdir(os.path.join(app.config['APP_DIR'], "scripts")):
+        if script.startswith('version'):
+            scripts.append(script.split('.')[0])
+    scripts.append("version_%s" % VERSION.replace(".", "_"))
+    scripts = uniq(scripts)
+    scripts.sort()
 
     if installed_version < VERSION:
-        new_version = AppVersion(version=VERSION)
-        update_script = import_string("scripts.version_%s" % (VERSION.replace(".", "_")))
-        update_script.update(app, db)
-        db.session.add(new_version)
-        db.session.commit()
+        for script in scripts:
+            if script > ("version_%s" % installed_version.replace(".", "_")):
+                # if update script is missing. update version in db.
+                # if update script is present and update script fails we don't update version in db.
+                update_script = None
+                try:
+                    update_script = import_string("scripts.%" % script)
+                except:
+                    pass
 
+                try:
+                    if update_script:
+                        update_script.update(app, db)
+                except Exception, e:
+                    logger.warn("%r", e)
+                    raise e
+                    
+                update_version = script.split("_", 1)[1].replace("_", ".")
+                new_version = AppVersion(version=update_version)
+                db.session.add(new_version)
+                db.session.commit()
+    
     ctx.pop()
+    return True
+
+
+# vim: set et sts=4 ts=4 sw=4:

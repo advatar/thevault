@@ -125,7 +125,7 @@ if sys.platform == 'darwin':
 
     APP = ['launcherosx.py']
     #DATA_FILES = ['mc.db',"templates", 'icons','static','static/js','static/css','static/images']
-    DATA_FILES = ["templates", 'icons','static','static/js','static/css','static/images','applications']
+    DATA_FILES = ["templates", 'icons','static','static/js','static/css','static/images','applications', 'scripts']
      
     OPTIONS = {'argv_emulation': True,
         'packages':[ 'cherrypy','jinja2','flask','sqlalchemy.dialects.sqlite','flaskext','flaskext.wtf','werkzeug','simplejson','sqlalchemy','wtforms'],

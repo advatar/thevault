@@ -23,12 +23,12 @@ from multiprocessing import freeze_support
 
 import objc
 from Foundation import *
-from AppKit import NSApp, NSApplication,NSGetAlertPanel,NSReleaseAlertPanel
+from AppKit import NSApp, NSApplication,NSGetAlertPanel,NSReleaseAlertPanel, NSRunAlertPanel
 from PyObjCTools import AppHelper
 import webbrowser
 import systrayosx
 from socket import *
-from settings import HOST
+from settings import HOST, need_update
 
 import version
 from myvault.helpers import pscan
@@ -92,6 +92,34 @@ def stopService_(self, notification):
         self.disabled_menuitems.append('Open Dashboard')
         
 
+def checkUpdates_(self, notification):
+    if need_update():
+        self.withUpdateDialog_(notification)
+    else:
+        self.withoutUpdateDialog_(notification)
+
+def withUpdateDialog_(self, notification):
+    app = NSApplication.sharedApplication()
+    message = "A new version of MyCube Vault is available for download."
+    alertPanel = NSGetAlertPanel("MyCube Vault", message, "Download", "Do not download", None)
+    alertPanel.setFloatingPanel_(True)
+    self.displayed = True
+    response = app.runModalForWindow_(alertPanel)
+    NSReleaseAlertPanel(alertPanel)
+
+    if response == 1:
+        webbrowser.open("http://sourceforge.net/projects/themycubevault/files/MyCubeVault.exe/download")
+    
+
+def withoutUpdateDialog_(self, notification):
+    app = NSApplication.sharedApplication()
+    message = "There is no updated version of MyCube Vault yet. Try again next time."
+    alertPanel = NSGetAlertPanel("MyCube Vault", message, "Close", None, None)
+    alertPanel.setFloatingPanel_(True)
+    self.displayed = True
+    app.runModalForWindow_(alertPanel)
+    NSReleaseAlertPanel(alertPanel)
+    
 def openDashboard_(self, notification):
     webbrowser.open_new("http://%s:%s" % (HOST, self.server_port))
 
@@ -172,24 +200,40 @@ def doTest():
             alertPanel = None
 
 
+def updateMonitor_(self, notification):
+    if need_update():
+        if not (hasattr(self, 'displayed') and self.displayed):
+            self.withUpdateDialog_(notification)
+        else:
+            # user doesn't want to be bothered.
+            if hasattr(self, 'updateTimer'):
+                self.updateTimer.invalidate()
+                self.updateTimer = None
+
+def restartCallback_(self, notification):
+    try:
+        data = urllib2.urlopen("http://%s:%s/check_restart" % (HOST, self.server_port), timeout=2).read()
+        if data == "true":
+            self.restartService_("")
+    except Exception, e:
+        pass
+
 if __name__ == "__main__":
     freeze_support()
-    def restartCallback_(self, notification):
-        try:
-            data = urllib2.urlopen("http://%s:%s/check_restart" % (HOST, self.server_port), timeout=2).read()
-            if data == "true":
-                self.restartService_("")
-        except Exception, e:
-            pass
 
+    # add these methods to the menubar
     objc.classAddMethod(systrayosx.Backup, "restartCallback_", restartCallback_)
     objc.classAddMethod(systrayosx.Backup, "restartService_", restartService_)
+    objc.classAddMethod(systrayosx.Backup, "updateMonitor_", updateMonitor_)
+    objc.classAddMethod(systrayosx.Backup, "withUpdateDialog_", withUpdateDialog_)
+    objc.classAddMethod(systrayosx.Backup, "withoutUpdateDialog_", withoutUpdateDialog_)
 
     app = NSApplication.sharedApplication()
     menus = [
-       (('Open Dashboard', 'openDashboard:', ''), openDashboard_),
+        (('Open Dashboard', 'openDashboard:', ''), openDashboard_),
         (('Start', 'startService:', ''), startService_),
         #(('Stop', 'stopService:', ''), stopService_),
+        (('Check for updates', 'checkUpdates:', ''), checkUpdates_),
         (('Quit', 'quitServices:', ''), quitServices_)
         #(('Open at Login', 'toggleOpenAtLogin:', ''), toggleOpenAtLogin_),
         #(('Reset Password', 'resetPassword:', ''), resetPassword_)
@@ -198,9 +242,15 @@ if __name__ == "__main__":
     delegate.disabled_menuitems = ['Open Dashboard']
     delegate.server_port = str(pscan())
     delegate.startService_("")
-    
+
+    # check updates on startup
+    delegate.updateMonitor_("")
+
     NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
-        3, delegate, "restartCallback_", None, YES)
+            3, delegate, "restartCallback_", None, YES)
+
+    delegate.updateTimer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+            7200, delegate, "updateMonitor_", None, YES)
 
     time.sleep(5)
     delegate.openDashboard_("")

@@ -625,4 +625,8 @@ def is_online():
     except Exception, e:
         return False
 
+def uniq(seq):
+    seen = set()
+    return [x for x in seq if x not in seen and not seen.add(x)]
+
 # vim: set et sts=4 ts=4 sw=4:
