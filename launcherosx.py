@@ -108,7 +108,7 @@ def withUpdateDialog_(self, notification):
     NSReleaseAlertPanel(alertPanel)
 
     if response == 1:
-        webbrowser.open("http://sourceforge.net/projects/themycubevault/files/MyCubeVault.exe/download")
+        webbrowser.open("http://sourceforge.net/projects/themycubevault/files/MyCubeVault.dmg/download")
     
 
 def withoutUpdateDialog_(self, notification):

@@ -18,7 +18,7 @@ import ConfigParser
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
 import kronos
 
-VERSION = "0.1.2" # major.minor.patch
+VERSION = "0.1.1" # major.minor.patch
 USBMODE = False
 
 def get_path(target):
@@ -49,7 +49,9 @@ def config_defaults():
     if sys.platform == "win32":
         import winhelpers
         folders = winhelpers.get_user_folders()
-        defaults['APP_DIR'] = os.path.join(folders['AppData'], 'MyCube Vault')
+        #defaults['APP_DIR'] = os.path.join(folders['AppData'], 'MyCube Vault')
+        defaults['APP_DIR'] = os.path.join(os.environ['PROGRAMFILES'], 'MyCube Vault')
+        #defaults['APP_DIR'] = os.path.dirname(os.path.realpath(__file__))
         defaults['CONFIG_DIR'] = os.path.join(folders['AppData'], 'MyCube Vault')
         defaults['BACKUP_DIR'] = os.path.join(defaults['CONFIG_DIR'], 'data')
     elif sys.platform == 'darwin':
@@ -189,8 +191,7 @@ def create_default_views(app):
 def need_update():
     update_url = "http://mycubevault.appspot.com/releases/current"
     try:
-        latest_version = urllib2.urlopen(update_url, timeout=5).read()
-
+        latest_version = urllib2.urlopen(update_url, timeout=10).read()
         if latest_version.strip() > VERSION:
             return True
     except Exception, e:

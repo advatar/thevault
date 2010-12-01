@@ -20,9 +20,9 @@ from multiprocessing import freeze_support
 from systray import SysTray
 import win32api
 import win32con
-#import win32ui
+import win32ui
 from myvault.helpers import pscan, is_online
-from settings import HOST
+from settings import HOST, need_update
 
 def start_service(self):
     """
@@ -104,9 +104,36 @@ def quit_services(self):
     time.sleep(2) 
 
 
+def with_update_dialog(self):
+    message = "A new version of MyCube Vault is available for download. Download update?"
+    self.displayed = True
+    response = win32ui.MessageBox(
+            message,
+            "MyCube Vault",
+            win32con.MB_YESNO)
+    if response == win32con.IDYES:
+        webbrowser.open("http://sourceforge.net/projects/themycubevault/files/MyCubeVault.exe/download")
+
+
+
+def without_update_dialog(self):
+    message = "There is no updated version of MyCube Vault yet. Try again next time."
+    self.displayed = True
+    win32ui.MessageBox(
+            message,
+            "MyCube Vault",
+            win32con.MB_OK)
+
+def check_updates(self):
+    if need_update():
+        with_update_dialog(self)
+    else:
+        without_update_dialog(self)
+
 def main():
     menu_options = (
-            ('Open Dashboard', None, open_dashboard),)
+            ('Open Dashboard', None, open_dashboard),
+            ('Check for updates', None, check_updates),)
             #('Start Service', None, start_service),)
             #('Stop Service', None, stop_service),
             #('Reset Password', None, reset_password))
@@ -127,7 +154,17 @@ def main():
         except Exception:
             pass
 
+    def update_monitor(timer_id, timer_t):
+        if need_update():
+            if not (hasattr(st, 'displayed') and st.displayed):
+                with_update_dialog(st)
+            else:
+                if hasattr(st, 'update_timer'):
+                    timer.kill_timer(st.update_timer)
+                    st.update_timer = None
+
     timer.set_timer(3000, callback)
+    st.update_timer = timer.set_timer(7200 * 1000, update_monitor)
     st.run()
 
 if __name__ == "__main__":
