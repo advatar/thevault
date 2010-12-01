@@ -19,7 +19,7 @@ class SettingsForm(Form):
     statuses = BooleanField("Status", default=True)
     albums = BooleanField("Albums", default=True)
     links = BooleanField("Links", default=True)
-    #photos = BooleanField("Photos", default=True)
+    photos = BooleanField("Photos", default=True)
 
 class ScheduleForm(Form):
     interval = SelectField('Interval',

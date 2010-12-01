@@ -116,8 +116,8 @@ def do_preferences():
         'albums': settings_form.albums.data,
         'notes': settings_form.notes.data,
         'links': settings_form.links.data,
-        'friends': settings_form.friends.data}
-        #'photos': settings_form.photos.data}
+        'friends': settings_form.friends.data,
+        'photos': settings_form.photos.data}
 
     preference['schedule'] = {
         'interval': schedule_form.interval.data,
