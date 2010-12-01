@@ -187,8 +187,7 @@ def create_default_views(app):
     default_views(app)
 
 def need_update():
-    #update_url = "http://sourceforge.net/projects/themycubevault/files/current.txt/download"
-    update_url = "http://192.168.170.141:9000/current.txt"
+    update_url = "http://mycubevault.appspot.com/releases/current"
     try:
         latest_version = urllib2.urlopen(update_url, timeout=5).read()
 
