@@ -1,0 +1,43 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="google-site-verification" content="vMHYo8SU1gOEes80AGsxB6_xuMPyqqYJGLMVhRmXYpA" />
+    <script type='application/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js'></script>
+    <title>OSG{% block title %}{% endblock title %}</title>
+    {%- block css %}
+    <link rel="stylesheet" type="text/css" href="{{ media_url }}/css/style.css" />
+    {% endblock css -%}
+    {%- block js %}
+    {% endblock js -%}
+    {%- block additional_headers %}
+    {% endblock additional_headers %}
+  </head>
+  {%- block bodytag %}<body>{% endblock bodytag -%}
+    {% block page %}
+    <div id="page">
+      {% block header %}
+      <div id="header">
+        <a id="logo" href="{{ url_for('core/index') }}"><h1>{{ _('OpenSocialGraph') }}</h1></a>
+        <ul id="topnav">
+          {% if request.user.is_anonymous() %}
+          <li><a href="{{ create_login_url(url_for('core/index')) }}">{{ _('Login') }}</a></li>
+          {% else %}
+          <li><a href="{{ create_logout_url(create_login_url(url_for('core/index'))) }}">{{ _('Logout') }}</a></li>
+          {% endif %}
+        </ul>
+      </div>
+      {% endblock header %}
+      
+      {% block content %}
+      {% endblock content %}
+
+      {% block footer %}
+      <div id="footer">
+        <p>{{ _('Copyright 2010 OpenSocialGraph') }}</p>
+      </div>
+      {% endblock footer %}
+    </div>
+    {% endblock page %}
+  </body>
+</html>

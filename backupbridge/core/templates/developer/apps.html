@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>App Name</th>
+    </tr>
+    {% for app in apps %}
+      <tr>
+        <td>{{ app.key().id() }}</td>
+        <td><a href="{{ url_for('core/developer/app', app_id=app.key().id())}}">{{ app.application_name|safe }}</a></td>
+      </tr>
+    {% endfor %}
+  </table>
+{% endblock content %}

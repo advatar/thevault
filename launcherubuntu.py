@@ -186,6 +186,7 @@ def update_dialog(self, widget, data=None):
             gtk.MESSAGE_QUESTION,
             gtk.BUTTONS_YES_NO,
             message)
+    self.displayed = True
     response = dialog.run()
     dialog.destroy()
 
@@ -200,7 +201,7 @@ def no_update_dialog(self, widget, data=None):
             gtk.MESSAGE_INFO,
             gtk.BUTTONS_OK,
             message)
-
+    self.displayed = True
     dialog.run()
     dialog.destroy()
 
@@ -256,10 +257,12 @@ def main():
         return True
 
     def update_callback(st):
-        check_updates(st, None)
+        if need_update():
+            if hasattr(st, "displayed") and not st.displayed:
+                update_dialog(st, None)
 
     gobject.timeout_add(3000, callback, st)
-    gobject.timeout_add(20000, update_callback, st)
+    gobject.timeout_add(3600 * 1000, update_callback, st)
     st.start()
     
 if __name__ == "__main__":

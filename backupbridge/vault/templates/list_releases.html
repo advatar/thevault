@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %} - Vault Releases{% endblock title %}
+
+{% block content %}
+<h4>Vault Releases</h4>
+
+<ul>
+  {% for release in releases %}
+  <li>{{ release.version }} <a href="{{ url_for('vault/delete_release', id=release.key()) }}" class="delete_link">Remove</a></li>
+  {% endfor %}
+</ul>
+
+<p><a href="{{ url_for('vault/new_release') }}">New Release</a></p>
+
+<script type"text/javascript">
+  $(document).ready(function(){
+    $('.delete_link').click(function(){
+      var res = confirm('Are you sure?');
+      if(res){
+        var f = "<form method='POST' action='" + $(this).attr('href') + "'></form>";
+        var form = $(f).appendTo('body');
+        form.submit();
+      }
+      return false;
+    });
+  });
+</script>
+{% endblock content %}

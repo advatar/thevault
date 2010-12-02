@@ -1,0 +1,8 @@
+<html>
+  <body>
+    <script type="text/javascript">
+      var hash = window.location.hash;
+      window.location = "{{ url_for('backup_bridge/facebook_register') }}" + hash.replace('#', '?');
+    </script>
+  </body>
+</html>

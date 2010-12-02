@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<p>App Name: {{ app.application_name|safe }}</p>
+<p>Callback: {{ app.callback_url|safe }}</p>
+
+<p>Consumer Key: {{ app.consumer_key }}</p>
+<p>Consumer Secret: {{ app.consumer_secret }}</p>
+
+{% endblock content %}

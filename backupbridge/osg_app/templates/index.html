@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %} - Index{% endblock title %}
+
+{% block content %}
+<h2>{{ _('OSG') }}</h2>
+{% if request.user.is_anonymous %}
+<a href="{{ create_login_url(url_for('osg/dashboard')) }}">Login</a>
+<a href="{{ url_for('registration/register') }}">Register</a>
+{% else %}
+<a href="{{ create_logout_url(url_for('osg/index')) }}">Logout</a>
+{% endif %}
+{% endblock content %}
