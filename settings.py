@@ -50,7 +50,8 @@ def config_defaults():
         import winhelpers
         folders = winhelpers.get_user_folders()
         #defaults['APP_DIR'] = os.path.join(folders['AppData'], 'MyCube Vault')
-        defaults['APP_DIR'] = os.path.join(os.environ['PROGRAMFILES'], 'MyCube Vault')
+        #defaults['APP_DIR'] = os.path.join(os.environ['PROGRAMFILES'], 'MyCube Vault')
+        defaults['APP_DIR'] = os.getcwd()
         #defaults['APP_DIR'] = os.path.dirname(os.path.realpath(__file__))
         defaults['CONFIG_DIR'] = os.path.join(folders['AppData'], 'MyCube Vault')
         defaults['BACKUP_DIR'] = os.path.join(defaults['CONFIG_DIR'], 'data')

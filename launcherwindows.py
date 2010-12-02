@@ -159,12 +159,18 @@ def main():
             if not (hasattr(st, 'displayed') and st.displayed):
                 with_update_dialog(st)
             else:
-                if hasattr(st, 'update_timer'):
-                    timer.kill_timer(st.update_timer)
-                    st.update_timer = None
+                timer.kill_timer(timer_id)
+
+    def update_on_start(timer_id, timer_t):
+        print "startup update"
+        timer.kill_timer(timer_id)
+        if need_update():
+            with_update_dialog(st)
 
     timer.set_timer(3000, callback)
-    st.update_timer = timer.set_timer(7200 * 1000, update_monitor)
+    timer.set_timer(3600 * 1000, update_monitor)
+    timer.set_timer(10 * 1000, update_on_start)
+    
     st.run()
 
 if __name__ == "__main__":
