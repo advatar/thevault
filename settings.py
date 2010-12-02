@@ -189,7 +189,7 @@ def create_default_views(app):
     default_views(app)
 
 def need_update():
-    update_url = "http://mycubevault.appspot.com/releases/current"
+    update_url = "http://opensocialgraph.appspot.com/vault/releases/current"
     try:
         latest_version = urllib2.urlopen(update_url, timeout=10).read()
         if latest_version.strip() > VERSION:

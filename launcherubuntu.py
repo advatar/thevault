@@ -255,7 +255,11 @@ def main():
             pass
         return True
 
+    def update_callback(st):
+        check_updates(st, None)
+
     gobject.timeout_add(3000, callback, st)
+    gobject.timeout_add(20000, update_callback, st)
     st.start()
     
 if __name__ == "__main__":
