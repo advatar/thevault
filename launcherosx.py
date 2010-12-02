@@ -222,11 +222,11 @@ if __name__ == "__main__":
     freeze_support()
 
     # add these methods to the menubar
-    objc.classAddMethod(systrayosx.Backup, "restartCallback_", restartCallback_)
-    objc.classAddMethod(systrayosx.Backup, "restartService_", restartService_)
-    objc.classAddMethod(systrayosx.Backup, "updateMonitor_", updateMonitor_)
-    objc.classAddMethod(systrayosx.Backup, "withUpdateDialog_", withUpdateDialog_)
-    objc.classAddMethod(systrayosx.Backup, "withoutUpdateDialog_", withoutUpdateDialog_)
+    objc.classAddMethod(systrayosx.Backup, "restartCallback:", restartCallback_)
+    objc.classAddMethod(systrayosx.Backup, "restartService:", restartService_)
+    objc.classAddMethod(systrayosx.Backup, "updateMonitor:", updateMonitor_)
+    objc.classAddMethod(systrayosx.Backup, "withUpdateDialog:", withUpdateDialog_)
+    objc.classAddMethod(systrayosx.Backup, "withoutUpdateDialog:", withoutUpdateDialog_)
 
     app = NSApplication.sharedApplication()
     menus = [
@@ -243,17 +243,16 @@ if __name__ == "__main__":
     delegate.server_port = str(pscan())
     delegate.startService_("")
 
-    # check updates on startup
-    delegate.updateMonitor_("")
 
     NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
-            3, delegate, "restartCallback_", None, YES)
-
+            3, delegate, "restartCallback:", None, YES)
+    NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+            10, delegate, "updateMonitor:", None, NO)
     delegate.updateTimer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
-            7200, delegate, "updateMonitor_", None, YES)
-
-    time.sleep(5)
-    delegate.openDashboard_("")
+            3600, delegate, "updateMonitor:", None, YES)
+    NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+            5, delegate, "openDashboard:", None, NO)
+    
     app.setDelegate_(delegate)
     AppHelper.runEventLoop()
 
