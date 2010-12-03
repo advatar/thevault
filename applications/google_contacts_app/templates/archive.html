@@ -3,7 +3,7 @@
 {% block content %}
   <h2>Archives: Google Contacts</h2>
   <h3>Account: {{ profile['email'] }}</h3>
-  
+
   <div class="content-body">
     <div class="archive_container">
       <div class="container_header">
@@ -17,15 +17,15 @@
         <tr>
           <td style="border-bottom:1px solid #e6e6e6;padding:10px 0 10px 0">
             {% if contact | hasattr('title') and contact.title and contact.title.text %}
-            <div class="contact_details"><strong>Contact</strong>: {{ contact.title.text }}</div>
+            <div class="contact_details"><strong>Contact</strong>: {{ contact.title.text.decode('utf-8') }}</div>
             {% endif %}
 
             {% if contact | hasattr("name") %}
-            <div class="contact_details"><strong>Name</strong>: {{ contact.name }}</div>
+            <div class="contact_details"><strong>Name</strong>: {{ contact.name.decode('utf-8') }}</div>
             {% endif %}
             
             {% if contact | hasattr("nickname") and contact.nickname %}
-            <div class="contact_details"><strong>Nickname</strong>: {{ contact.nickname }}</div>
+            <div class="contact_details"><strong>Nickname</strong>: {{ contact.nickname.decode('utf-8') }}</div>
             {% endif %}
 
             {% if contact | hasattr("email") and contact.email %}
@@ -52,7 +52,7 @@
             <div class="contact_details"><strong>Postal Address</strong>:
               <ul>
                 {% for postal_address in contact.postal_address %}
-                  <li>{{ postal_address.text | nl2br | safe  }}</li>
+                  <li>{{ postal_address.text.decode('utf-8') | nl2br | safe  }}</li>
                 {% endfor %}
               </ul>
               </div>
@@ -70,7 +70,7 @@
 
             {% if contact | hasattr('organization') and contact.organization %}
               {% if contact.organization.org_name %}
-              <div class="contact_details"><strong>Organization</strong>: {{ contact.organization.org_name.text }}</div>    
+              <div class="contact_details"><strong>Organization</strong>: {{ contact.organization.org_name.text.decode('utf-8') }}</div>    
               {% endif %}
             {% endif %}
           </td>
